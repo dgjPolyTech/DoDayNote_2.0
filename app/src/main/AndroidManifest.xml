@@ -11,6 +11,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.DoDayNote">
+        <!-- 새 액티비티 추가 시마다 exported true로 바꿔줘야 함. -->
+        <activity
+            android:name=".HabitDetailActivity"
+            android:exported="true" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
