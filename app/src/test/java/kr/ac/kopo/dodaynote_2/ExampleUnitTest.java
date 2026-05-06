@@ -1,4 +1,4 @@
-package kr.ac.kopo.dodaynote;
+package kr.ac.kopo.dodaynote_2;
 
 import org.junit.Test;
 

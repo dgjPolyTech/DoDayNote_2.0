@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DoDayNote"
+rootProject.name = "DoDayNote_2.0"
 include(":app")

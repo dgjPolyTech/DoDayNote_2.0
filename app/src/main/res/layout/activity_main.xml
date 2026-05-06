@@ -6,34 +6,80 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/pink"
     tools:context=".MainActivity">
 
     <!-- 제목 영역(없어질 수도 있음) -->
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="DoayNote" />
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@color/dark_grey"
+        android:text="DoayNote 2.0" />
 
     <!-- 할 일 목록 -->
     <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background=""
-            android:text="할일 1"/>
 
+        <!-- 높이는 어쩔 수 없이 고정 값 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:background="@color/red"
+            android:layout_margin="5dp"
+            android:text="할일 1"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:background="@color/orange"
+            android:layout_margin="5dp"
+            android:shadowDx="@integer/material_motion_duration_long_1"
+            android:text="할일 2"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:background="@color/yellow"
+            android:layout_margin="5dp"
+            android:text="할일 3"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:background="@color/blue"
+            android:layout_margin="5dp"
+            android:text="할일 4"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:background="@color/purple"
+            android:layout_margin="5dp"
+            android:text="할일 5"/>
     </LinearLayout>
 
     <!-- 하단 영역 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/black"
         android:orientation="horizontal">
 
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="홈" />
+
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="" />
+
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="홈" />
+
+        <Button
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:text="홈" />
     </LinearLayout>

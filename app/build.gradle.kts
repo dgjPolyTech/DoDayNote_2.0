@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "kr.ac.kopo.dodaynote"
+    namespace = "kr.ac.kopo.dodaynote_2"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
