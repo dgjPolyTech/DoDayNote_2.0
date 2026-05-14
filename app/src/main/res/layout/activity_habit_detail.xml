@@ -5,21 +5,23 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/pink"
+    android:background="@color/background"
     tools:context=".MainActivity">
 
-    <!-- 제목 영역(없어질 수도 있음) -->
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="80dp"
         android:background="@color/dark_grey"
+        android:gravity="center"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
         android:text="DoayNote 2.0" />
 
+    <!-- 습관에 대한 세부 제목  -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="디테일 화면입니다" />
-
-
 
 </LinearLayout>

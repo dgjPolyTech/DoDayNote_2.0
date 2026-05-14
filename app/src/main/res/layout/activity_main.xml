@@ -1,78 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/pink">
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:background="@color/dark_grey"
-        android:gravity="center"
-        android:textColor="@android:color/white"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:text="DoayNote 2.0" />
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:fillViewport="true"> <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="5dp">
-
-        <TextView android:id="@+id/habit_1" android:layout_width="match_parent" android:layout_height="70dp" android:background="@color/red" android:layout_margin="5dp" android:text="할일 1" />
-        <TextView android:id="@+id/habit_2" android:layout_width="match_parent" android:layout_height="70dp" android:background="@color/orange" android:layout_margin="5dp" android:text="할일 2" />
-        <TextView android:id="@+id/habit_3" android:layout_width="match_parent" android:layout_height="70dp" android:background="@color/yellow" android:layout_margin="5dp" android:text="할일 3" />
-        <TextView android:id="@+id/habit_4" android:layout_width="match_parent" android:layout_height="70dp" android:background="@color/blue" android:layout_margin="5dp" android:text="할일 4" />
-        <TextView android:id="@+id/habit_5" android:layout_width="match_parent" android:layout_height="70dp" android:background="@color/purple" android:layout_margin="5dp" android:text="할일 5" />
-        <TextView android:id="@+id/habit_6" android:layout_width="match_parent" android:layout_height="70dp" android:background="@color/red" android:layout_margin="5dp" android:text="할일 6" />
-        <TextView android:id="@+id/habit_7" android:layout_width="match_parent" android:layout_height="70dp" android:background="@color/orange" android:layout_margin="5dp" android:text="할일 7" />
-        <TextView android:id="@+id/habit_8" android:layout_width="match_parent" android:layout_height="70dp" android:background="@color/purple" android:layout_margin="5dp" android:text="할일 5" />
-        <TextView android:id="@+id/habit_9" android:layout_width="match_parent" android:layout_height="70dp" android:background="@color/red" android:layout_margin="5dp" android:text="할일 6" />
-        <TextView android:id="@+id/habit_10" android:layout_width="match_parent" android:layout_height="70dp" android:background="@color/orange" android:layout_margin="5dp" android:text="할일 7" />
-
-
-    </LinearLayout>
-    </ScrollView>
+    android:background="#F8F8F8">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="@color/black"
-        android:orientation="horizontal">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <Button
-            android:id="@+id/btn_home"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="홈" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-        <Button
-            android:id="@+id/btn_add"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="추가" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:background="#DCDCDC" />
 
-        <Button
-            android:id="@+id/btn_calendar"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="달력" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="전체 습관 수: 5개"
+                android:fontFamily="@font/inter"
+                android:textStyle="bold"
+                android:textColor="#333333"
+                android:textSize="14sp" />
+        </LinearLayout>
 
-        <Button
-            android:id="@+id/btn_settings"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:text="설정" />
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="16dp">
+
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+
+            </LinearLayout>
+        </ScrollView>
+
+        <include layout="@layout/activity_footer" />
     </LinearLayout>
-</LinearLayout>
+
+    <!-- 할일 추가 버튼 -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="84dp"
+        android:backgroundTint="@color/main_green"
+        app:elevation="6dp" />
+
+</FrameLayout>

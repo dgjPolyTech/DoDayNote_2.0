@@ -26,8 +26,8 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        habit_1 = findViewById(R.id.habit_1);
-        habit_1.setOnClickListener(onClickListener);
+//        habit_1 = findViewById(R.id.habit_1);
+//        habit_1.setOnClickListener(onClickListener);
     }
 
     View.OnClickListener onClickListener = new View.OnClickListener() {

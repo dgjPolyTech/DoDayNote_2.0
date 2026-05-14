@@ -6,4 +6,10 @@
     </style>
 
     <style name="Theme.DoDayNote" parent="Base.Theme.DoDayNote" />
+
+    <!-- 위젯에 적용할 테마-->
+    <style name="Theme.Widget.GreenAccent" parent="android:Theme.Material.Light">
+        <item name="colorAccent">@color/main_green</item>
+        <item name="android:colorAccent">@color/main_green</item>
+    </style>
 </resources>
