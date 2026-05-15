@@ -3,7 +3,6 @@ package kr.ac.kopo.dodaynote_2;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,9 +10,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 public class MainActivity extends AppCompatActivity {
 
-    TextView habit_1;
+    FloatingActionButton btn_habit_create; // 그냥 버튼으로 선언하면 안되고 플로팅 액션으로 선언해야함.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,14 +27,14 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-//        habit_1 = findViewById(R.id.habit_1);
-//        habit_1.setOnClickListener(onClickListener);
+        btn_habit_create = findViewById(R.id.btn_habit_create);
+        btn_habit_create.setOnClickListener(onClickListener);
     }
 
     View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent(MainActivity.this, HabitDetailActivity.class);
+            Intent intent = new Intent(MainActivity.this, HabitCreateActivity.class);
 
             startActivity(intent);
         }
