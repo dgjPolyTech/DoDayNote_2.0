@@ -8,30 +8,55 @@
     android:background="#F8F8F8">
 
     <LinearLayout
-        android:layout_width="447dp"
-        android:layout_height="771dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:background="#DCDCDC"
+            android:src="@drawable/chart"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical"
+            android:background="#F8F8F8">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:background="#DCDCDC" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-            <TextView
+                <TextView
+                    android:id="@+id/text_total_habits"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/inter"
+                    android:text="전체 습관 수: 5개"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_habit_list"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:minHeight="40dp"
+                android:paddingHorizontal="12dp"
+                android:backgroundTint="#70C18E"
                 android:fontFamily="@font/inter"
-                android:text="전체 습관 수: 5개"
-                android:textColor="#333333"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:text="역대 기록 보기"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:cornerRadius="8dp" />
+
         </LinearLayout>
 
         <ScrollView
@@ -56,6 +81,13 @@
 
                 <include layout="@layout/item_habit_card" />
                 <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
+                <include layout="@layout/item_habit_card" />
 
             </LinearLayout>
         </ScrollView>
@@ -63,7 +95,6 @@
         <include layout="@layout/activity_footer" />
     </LinearLayout>
 
-    <!-- 할일 추가 버튼 -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_habit_create"
         android:layout_width="wrap_content"
@@ -71,7 +102,8 @@
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="84dp"
-        android:backgroundTint="@color/main_green"
-        app:elevation="6dp" />
+        android:backgroundTint="#70C18E"
+        app:elevation="6dp"
+        app:srcCompat="@android:drawable/ic_input_add" />
 
 </FrameLayout>

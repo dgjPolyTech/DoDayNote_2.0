@@ -12,6 +12,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DoDayNote">
         <!-- 새 액티비티 추가 시마다 exported true로 바꿔줘야 함. -->
+        <!-- 습관 전체 보기 리스트 -->
+        <activity
+            android:name=".HabitListActivity"
+            android:exported="true" />
+
+        <!-- 습관 상세 -->
         <activity
             android:name=".HabitDetailActivity"
             android:exported="true" />
