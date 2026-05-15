@@ -37,7 +37,6 @@ public class FooterFragment extends Fragment {
         @Override
         public void onClick(View v) {
             int id = v.getId();
-
             if (id == R.id.btn_home) {
                 // 홈으로 이동
                 Intent intent = new Intent(getActivity(), MainActivity.class);
@@ -45,7 +44,9 @@ public class FooterFragment extends Fragment {
                 startActivity(intent);
             } else if (id == R.id.btn_record) {
                 // 기록 클릭 시 토스트
-                Toast.makeText(getActivity(), "기록 클릭", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getActivity(), RecordActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
             } else if (id == R.id.btn_settings) {
                 // 설정 클릭 시 토스트
                 Toast.makeText(getActivity(), "설정 클릭", Toast.LENGTH_SHORT).show();
