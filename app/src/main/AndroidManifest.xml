@@ -27,6 +27,11 @@
             android:name=".HabitCreateActivity"
             android:exported="true" />
 
+        <!-- 신규 습관 등록 -->
+        <activity
+            android:name=".HabitUpdateActivity"
+            android:exported="true" />
+
         <activity
             android:name=".RecordActivity"
             android:exported="true">

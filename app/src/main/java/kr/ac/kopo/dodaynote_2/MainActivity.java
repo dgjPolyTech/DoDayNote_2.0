@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -20,10 +19,11 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 public class MainActivity extends AppCompatActivity {
 
     FloatingActionButton btn_habit_create;
-    // 카드뷰들을 담을 변수 선언
     CardView layout_habit_1, layout_habit_2;
-
     Button btn_habit_list;
+
+    // 체크박스 뷰를 담을 변수 추가
+    View check_1, check_2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,19 +38,24 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btn_habit_create = findViewById(R.id.btn_habit_create);
-        btn_habit_list = findViewById((R.id.btn_habit_list));
+        btn_habit_list = findViewById(R.id.btn_habit_list);
 
         layout_habit_1 = findViewById(R.id.layout_habit_1);
         layout_habit_2 = findViewById(R.id.layout_habit_2);
 
+        check_1 = layout_habit_1.findViewById(R.id.check_habit_done);
+        check_2 = layout_habit_2.findViewById(R.id.check_habit_done);
+
         btn_habit_create.setOnClickListener(onClickListener);
         btn_habit_list.setOnClickListener(onClickListener);
 
+        // 카드 자체는 클릭 시 상세 화면으로 이동
         layout_habit_1.setOnClickListener(onClickListener);
-        layout_habit_1.setOnLongClickListener(onLongClickListener); // 롱클릭은 완료 처리용
-
         layout_habit_2.setOnClickListener(onClickListener);
-        layout_habit_2.setOnLongClickListener(onLongClickListener);
+
+        // 체크박스 영역 클릭 시 완료 처리 로직 실행
+        check_1.setOnClickListener(onCheckClickListener);
+        check_2.setOnClickListener(onCheckClickListener);
     }
 
     View.OnClickListener onClickListener = new View.OnClickListener() {
@@ -63,33 +68,39 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, HabitListActivity.class);
                 startActivity(intent);
             } else {
-                // 습관 카드 누른 상황
                 Intent intent = new Intent(MainActivity.this, HabitDetailActivity.class);
-
                 if (v.getId() == R.id.layout_habit_1) {
                     intent.putExtra("habit_title", "매일 20분 걷기");
                 } else if (v.getId() == R.id.layout_habit_2) {
                     intent.putExtra("habit_title", "물 2L 마시기");
                 }
-
                 startActivity(intent);
             }
         }
     };
 
-    View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
+    View.OnClickListener onCheckClickListener = new View.OnClickListener() {
         @Override
-        public boolean onLongClick(View v) {
-            if (v.getAlpha() == 1.0f) {
-                v.setAlpha(0.5f); // 반투명 (완료 느낌)
-                v.setBackgroundColor(Color.parseColor("#E0E0E0")); // 연한 회색 배경
+        public void onClick(View v) {
+            CardView parentCard;
+            if (v == check_1) parentCard = layout_habit_1;
+            else parentCard = layout_habit_2;
+
+            if (parentCard.getAlpha() == 1.0f) {
+                parentCard.setAlpha(0.5f);
+                parentCard.setCardBackgroundColor(Color.parseColor("#E0E0E0"));
+
+                v.setBackgroundResource(R.drawable.shape_checkbox_checked);
+
                 Toast.makeText(MainActivity.this, "습관 완료!", Toast.LENGTH_SHORT).show();
             } else {
-                v.setAlpha(1.0f); // 복구
-                v.setBackgroundColor(Color.WHITE); // 원복
+                parentCard.setAlpha(1.0f);
+                parentCard.setCardBackgroundColor(Color.WHITE);
+
+                v.setBackgroundResource(R.drawable.shape_checkbox_outline);
+
                 Toast.makeText(MainActivity.this, "다시 도전!", Toast.LENGTH_SHORT).show();
             }
-            return true;
         }
     };
 }

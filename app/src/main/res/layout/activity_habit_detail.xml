@@ -65,6 +65,16 @@
             android:fontFamily="@font/inter"
             android:textColor="#888888"
             android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/text_habit_cycle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="매일 20분 씩 반복(알림 설정 ON)"
+            android:textSize="14sp"
+            android:fontFamily="@font/inter"
+            android:textColor="#888888"
+            android:layout_marginTop="8dp" />
     </LinearLayout>
 
     <androidx.cardview.widget.CardView
@@ -95,7 +105,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="통계 분석"
+        android:text="통계 분석 리포트"
         android:fontFamily="@font/inter"
         android:textSize="18sp"
         android:textStyle="bold"
@@ -121,30 +131,32 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="✨ nn 주차에 가장 실천률이 높게 나타났어요."
+                android:text="📈 지난 4주간의 데이터를 분석한 결과, 3주차에 목표 달성률 92%를 기록하며 가장 안정적인 성취도를 보였습니다."
                 android:fontFamily="@font/inter"
                 android:textSize="15sp"
                 android:textColor="#555555"
-                android:layout_marginBottom="16dp"/>
+                android:lineSpacingExtra="6dp"
+                android:layout_marginBottom="18dp"/>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="📉 nn 주차에 실천률이 다소 떨어졌어요."
+                android:text="📉 다만, 주말 시간대의 실천 빈도가 평일 대비 약 15% 하락하는 경향이 발견되었습니다. 주말 집중 관리가 필요해 보입니다."
                 android:fontFamily="@font/inter"
                 android:textSize="15sp"
                 android:textColor="#555555"
-                android:layout_marginBottom="16dp"/>
+                android:lineSpacingExtra="6dp"
+                android:layout_marginBottom="18dp"/>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="💡 달성률을 높이기 위해 꾸준히 ~~를 하는 것이 좋아보여요."
                 android:fontFamily="@font/inter"
-                android:textSize="15sp"
+                android:lineSpacingExtra="6dp"
+                android:text="💡 TIP: 오전 시간대 알림 확인 후 10분 이내에 실천을 시작할 경우, 최종 완수 확률이 25% 이상 향상되는 것으로 분석됩니다."
                 android:textColor="#70C18E"
-                android:textStyle="bold"
-                android:lineSpacingExtra="4dp"/>
+                android:textSize="15sp"
+                android:textStyle="bold" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -154,15 +166,11 @@
         android:gravity="center">
 
         <Button
+            android:id = "@+id/btn_update"
             android:layout_width="200dp"
             android:layout_height="56dp"
-            android:text="수정하기"
+            android:text="정보 수정하기"
             android:textSize="16sp"
-
-
-
-
-
             android:textStyle="bold"
             android:fontFamily="@font/inter"
             android:textColor="#FFFFFF"

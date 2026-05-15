@@ -84,11 +84,6 @@
                 <include layout="@layout/item_habit_card" />
                 <include layout="@layout/item_habit_card" />
                 <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
-
             </LinearLayout>
         </ScrollView>
 

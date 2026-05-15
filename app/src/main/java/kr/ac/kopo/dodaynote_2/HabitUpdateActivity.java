@@ -4,7 +4,6 @@ import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -15,18 +14,15 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class HabitCreateActivity extends AppCompatActivity {
+public class HabitUpdateActivity extends AppCompatActivity {
 
     private EditText editHabitTitle;
     private CardView cardStartDate, cardEndDate;
@@ -35,28 +31,20 @@ public class HabitCreateActivity extends AppCompatActivity {
     private CheckBox checkMon, checkTue, checkWed, checkThu, checkFri, checkSat, checkSun;
     private Switch switchAlarm;
     private TextView textResult;
-    private ImageButton btn_close;
-    private Button btn_done; // '습관 형성 시작' 버튼 추가
+    private ImageButton btn_back;
+    private Button btn_done;
 
-    // 시작일과 종료일을 저장할 Calendar 객체
     private Calendar startCalendar, endCalendar;
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd", Locale.getDefault());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_habit_create);
+        setContentView(R.layout.activity_habit_update); // XML 파일명에 맞춰 확인 필요
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.habit_create), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        // 뷰 바인딩
-        btn_close = findViewById(R.id.btn_close);
-        btn_done = findViewById(R.id.btn_done); // 버튼 바인딩 추가
+        // 1. 뷰 바인딩
+        btn_back = findViewById(R.id.btn_back);
+        btn_done = findViewById(R.id.btn_done);
         editHabitTitle = findViewById(R.id.edit_habit_title);
         cardStartDate = findViewById(R.id.card_start_date);
         cardEndDate = findViewById(R.id.card_end_date);
@@ -74,83 +62,97 @@ public class HabitCreateActivity extends AppCompatActivity {
         checkSun = findViewById(R.id.check_sun);
         switchAlarm = findViewById(R.id.switch_alarm);
 
-        // 초기값 설정
+        // 2. Intent 데이터 수신 및 초기화
+        initDataFromIntent();
+
+        // 3. 리스너 설정
+        setupClickListeners();
+        setupChangeListeners();
+
+        // 최초 요약본 업데이트
+        updateSummary();
+    }
+
+    // 데이터 초기화 로직
+    private void initDataFromIntent() {
         startCalendar = Calendar.getInstance();
-        endCalendar = (Calendar) startCalendar.clone();
-        endCalendar.add(Calendar.DAY_OF_MONTH, 30); // 기본 30일 설정
+        endCalendar = Calendar.getInstance();
+
+        // DETAIL에서 보낸 값들 받기
+        String title = getIntent().getStringExtra("habit_title");
+        String startDateStr = getIntent().getStringExtra("start_date");
+        String endDateStr = getIntent().getStringExtra("end_date");
+        int duration = getIntent().getIntExtra("duration", 20);
+
+        if (title != null) editHabitTitle.setText(title);
+
+        // 날짜 문자열을 Calendar 객체로 변환
+        try {
+            if (startDateStr != null) startCalendar.setTime(sdf.parse(startDateStr));
+            if (endDateStr != null) endCalendar.setTime(sdf.parse(endDateStr));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
         updateDateLabels();
 
-        // 닫기 버튼
-        btn_close.setOnClickListener(v -> finish());
+        // NumberPicker 설정
+        pickerDuration.setMinValue(5);
+        pickerDuration.setMaxValue(120);
+        pickerDuration.setValue(duration);
 
-        // 시작일 선택
+        // 스위치 및 체크박스
+        switchAlarm.setChecked(getIntent().getBooleanExtra("alarm_on", true));
+        checkMon.setChecked(getIntent().getBooleanExtra("mon", true));
+        checkTue.setChecked(getIntent().getBooleanExtra("tue", true));
+        checkWed.setChecked(getIntent().getBooleanExtra("wed", true));
+        checkThu.setChecked(getIntent().getBooleanExtra("thu", true));
+        checkFri.setChecked(getIntent().getBooleanExtra("fri", true));
+        checkSat.setChecked(getIntent().getBooleanExtra("sat", true));
+        checkSun.setChecked(getIntent().getBooleanExtra("sun", true));
+    }
+
+    private void setupClickListeners() {
+        // 뒤로가기 버튼
+        btn_back.setOnClickListener(v -> finish());
+
+        // 날짜 선택 버튼
         cardStartDate.setOnClickListener(v -> showDatePicker(true));
-
-        // 종료일 선택
         cardEndDate.setOnClickListener(v -> showDatePicker(false));
 
-        // 습관 형성 시작 버튼 클릭 리스너 및 유효성 검사 추가
+        // [핵심] 수정 완료 버튼 (유효성 검사 포함)
         btn_done.setOnClickListener(v -> {
             String title = editHabitTitle.getText().toString().trim();
             long diff = endCalendar.getTimeInMillis() - startCalendar.getTimeInMillis();
             int durationDays = (int) (diff / (24 * 60 * 60 * 1000)) + 1;
 
-            // 1. 제목 입력 검사
             if (title.isEmpty()) {
-                Toast.makeText(this, "오류: 습관 이름을 입력해주세요.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "오류: 수정할 습관 이름을 입력해주세요.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // 2. 실천 기간 검사 (마이너스 일수 방지)
             if (durationDays < 1) {
-                Toast.makeText(this, "오류: 종료일은 시작일 이후여야 합니다.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "오류: 종료일은 시작일보다 빠를 수 없습니다.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // 모든 검사 통과 시
-            Toast.makeText(this, "버튼 클릭! 습관 형성을 시작합니다.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "습관 정보가 성공적으로 수정되었습니다!", Toast.LENGTH_SHORT).show();
+            finish();
         });
-
-        // NumberPicker 설정
-        pickerDuration.setMinValue(5);
-        pickerDuration.setMaxValue(120);
-        pickerDuration.setValue(30);
-
-        setupListeners();
-        updateSummary();
     }
 
-    private void showDatePicker(boolean isStartDate) {
-        Calendar targetCal = isStartDate ? startCalendar : endCalendar;
-
-        DatePickerDialog dialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
-            if (isStartDate) {
-                startCalendar.set(year, month, dayOfMonth);
-            } else {
-                endCalendar.set(year, month, dayOfMonth);
-            }
-            updateDateLabels();
-            updateSummary();
-        }, targetCal.get(Calendar.YEAR), targetCal.get(Calendar.MONTH), targetCal.get(Calendar.DAY_OF_MONTH));
-
-        dialog.show();
-    }
-
-    private void updateDateLabels() {
-        textStartDate.setText(sdf.format(startCalendar.getTime()));
-        textEndDate.setText(sdf.format(endCalendar.getTime()));
-    }
-
-    private void setupListeners() {
+    private void setupChangeListeners() {
+        // 제목 변경 감지
         editHabitTitle.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override public void afterTextChanged(Editable s) { updateSummary(); }
         });
 
+        // 분 선택 변경 감지
         pickerDuration.setOnValueChangedListener((picker, oldVal, newVal) -> updateSummary());
 
+        // 요일 및 알림 변경 감지
         CompoundButton.OnCheckedChangeListener checkListener = (buttonView, isChecked) -> updateSummary();
         checkMon.setOnCheckedChangeListener(checkListener);
         checkTue.setOnCheckedChangeListener(checkListener);
@@ -162,14 +164,32 @@ public class HabitCreateActivity extends AppCompatActivity {
         switchAlarm.setOnCheckedChangeListener(checkListener);
     }
 
+    private void showDatePicker(boolean isStartDate) {
+        Calendar targetCal = isStartDate ? startCalendar : endCalendar;
+        DatePickerDialog dialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
+            if (isStartDate) {
+                startCalendar.set(year, month, dayOfMonth);
+            } else {
+                endCalendar.set(year, month, dayOfMonth);
+            }
+            updateDateLabels();
+            updateSummary();
+        }, targetCal.get(Calendar.YEAR), targetCal.get(Calendar.MONTH), targetCal.get(Calendar.DAY_OF_MONTH));
+        dialog.show();
+    }
+
+    private void updateDateLabels() {
+        textStartDate.setText(sdf.format(startCalendar.getTime()));
+        textEndDate.setText(sdf.format(endCalendar.getTime()));
+    }
+
+    // 실시간 요약본 갱신 로직 (Create와 동일한 형식)
     private void updateSummary() {
         String title = editHabitTitle.getText().toString().trim();
         if (title.isEmpty()) title = "(습관 이름)";
 
         long diff = endCalendar.getTimeInMillis() - startCalendar.getTimeInMillis();
         int durationDays = (int) (diff / (24 * 60 * 60 * 1000)) + 1;
-
-        // 요약창에서는 마이너스가 나와도 그대로 보여주거나 0으로 처리 (유효성 검사는 버튼에서 수행)
         int displayDays = Math.max(durationDays, 0);
 
         int minutes = pickerDuration.getValue();
@@ -179,7 +199,7 @@ public class HabitCreateActivity extends AppCompatActivity {
         if (checkTue.isChecked()) daysBuilder.append("화 ");
         if (checkWed.isChecked()) daysBuilder.append("수 ");
         if (checkThu.isChecked()) daysBuilder.append("목 ");
-        if (checkFri.isChecked()) daysBuilder.append("금 "); // 기존 오타 수정 완료 (checkThu -> checkFri)
+        if (checkFri.isChecked()) daysBuilder.append("금 ");
         if (checkSat.isChecked()) daysBuilder.append("토 ");
         if (checkSun.isChecked()) daysBuilder.append("일 ");
 
@@ -189,7 +209,7 @@ public class HabitCreateActivity extends AppCompatActivity {
         String alarmStatus = switchAlarm.isChecked() ? "ON" : "OFF";
 
         String summary = String.format(
-                "%s ~ %s (%d일간)\n" +
+                "수정된 기간: %s ~ %s (%d일간)\n" +
                         "하루 %d분씩 [%s]을(를) %s에 합니다.\n" +
                         "알림 설정: %s",
                 sdf.format(startCalendar.getTime()), sdf.format(endCalendar.getTime()), displayDays,
