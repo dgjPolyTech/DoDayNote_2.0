@@ -49,7 +49,9 @@ public class FooterFragment extends Fragment {
                 startActivity(intent);
             } else if (id == R.id.btn_settings) {
                 // 설정 클릭 시 토스트
-                Toast.makeText(getActivity(), "설정 클릭", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getActivity(), SettingActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
             }
         }
     };
