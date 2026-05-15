@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:fontFamily="@font/inter"
-            android:text="전체 습관 수: 5개"
+            android:text="전체 습관 수: 7개"
             android:textColor="#333333"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -54,16 +54,19 @@
             android:paddingHorizontal="16dp"
             android:paddingBottom="16dp">
 
-            <include layout="@layout/item_habit_card" />
-            <include layout="@layout/item_habit_card" />
-            <include layout="@layout/item_habit_card" />
-            <include layout="@layout/item_habit_card" />
-            <include layout="@layout/item_habit_card" />
-            <include layout="@layout/item_habit_card" />
-            <include layout="@layout/item_habit_card" />
-            <include layout="@layout/item_habit_card" />
-            <include layout="@layout/item_habit_card" />
-            <include layout="@layout/item_habit_card" />
+            <include
+                android:id="@+id/layout_habit_1"
+                layout="@layout/item_habit_card_complete" />
+
+            <include
+                android:id="@+id/layout_habit_2"
+                layout="@layout/item_habit_card_complete" />
+
+            <include layout="@layout/item_habit_card_complete" />
+            <include layout="@layout/item_habit_card_complete" />
+            <include layout="@layout/item_habit_card_complete" />
+            <include layout="@layout/item_habit_card_complete" />
+            <include layout="@layout/item_habit_card_complete" />
 
         </LinearLayout>
     </ScrollView>

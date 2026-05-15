@@ -10,40 +10,50 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:padding="16dp">
+        android:layout_height="wrap_content"
+        android:padding="20dp">
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true">
 
             <TextView
+                android:id="@+id/text_habit_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="2026.05.01 시작"
-                android:textColor="#999999"
+                android:text="2026.05.01 ~ 2026.05.31"
+                android:textColor="#888888"
                 android:textSize="12sp"
                 android:fontFamily="@font/inter" />
 
             <TextView
+                android:id="@+id/text_habit_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="매일 20분 걷기"
-                android:textColor="#000000"
+                android:textColor="#333333"
                 android:textSize="20sp"
                 android:textStyle="bold"
+                android:layout_marginTop="4dp"
                 android:fontFamily="@font/inter" />
         </LinearLayout>
 
-        <View
-            android:id="@+id/check_habit_done"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+        <TextView
+            android:id="@+id/text_achievement_rate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:background="@drawable/shape_checkbox_outline" />
+            android:text="달성률 nn%"
+            android:textColor="#70C18E"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/inter" />
+
     </RelativeLayout>
 </androidx.cardview.widget.CardView>

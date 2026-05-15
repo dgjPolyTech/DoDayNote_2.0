@@ -17,6 +17,11 @@
             android:name=".HabitListActivity"
             android:exported="true" />
 
+        <!-- 습관 전체 보기 - 상세 -->
+        <activity
+            android:name=".HabitListDetailActivity"
+            android:exported="true" />
+
         <!-- 습관 상세 -->
         <activity
             android:name=".HabitDetailActivity"
@@ -35,11 +40,6 @@
         <activity
             android:name=".RecordActivity"
             android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
 
         <activity
@@ -55,11 +55,6 @@
         <activity
             android:name=".SettingActivity"
             android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
 
     </application>
