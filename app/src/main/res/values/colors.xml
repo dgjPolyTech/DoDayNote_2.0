@@ -4,6 +4,7 @@
     <color name="title">#009951</color>
     <color name="main_green">#64B27B</color>
     <color name="background">#FFF9F9</color>
+    <color name="background_2">#F5FDF4</color>
 
     <!-- 기본 -->
     <color name="white">#FFFFFF</color>

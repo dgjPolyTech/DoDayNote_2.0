@@ -8,8 +8,8 @@
     android:background="#F8F8F8">
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="447dp"
+        android:layout_height="771dp"
         android:orientation="vertical">
 
         <LinearLayout
@@ -27,11 +27,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="전체 습관 수: 5개"
                 android:fontFamily="@font/inter"
-                android:textStyle="bold"
+                android:text="전체 습관 수: 5개"
                 android:textColor="#333333"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <ScrollView
@@ -46,14 +46,14 @@
                 android:layout_height="wrap_content"
                 android:paddingHorizontal="16dp">
 
-                <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
+                <include
+                    android:id="@+id/layout_habit_1"
+                    layout="@layout/item_habit_card" />
+
+                <include
+                    android:id="@+id/layout_habit_2"
+                    layout="@layout/item_habit_card" />
+
                 <include layout="@layout/item_habit_card" />
                 <include layout="@layout/item_habit_card" />
 
