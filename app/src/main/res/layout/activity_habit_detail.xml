@@ -148,15 +148,6 @@
                 android:lineSpacingExtra="6dp"
                 android:layout_marginBottom="18dp"/>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/inter"
-                android:lineSpacingExtra="6dp"
-                android:text="💡 TIP: 오전 시간대 알림 확인 후 10분 이내에 실천을 시작할 경우, 최종 완수 확률이 25% 이상 향상되는 것으로 분석됩니다."
-                android:textColor="#70C18E"
-                android:textSize="15sp"
-                android:textStyle="bold" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
