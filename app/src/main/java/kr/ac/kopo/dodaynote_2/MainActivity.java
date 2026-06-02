@@ -16,6 +16,15 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+// 서버 통신(Retrofit)을 위해 필요한 정석 라이브러리 및 패키지 임포트
+import android.util.Log;
+import java.util.Map;
+import kr.ac.kopo.dodaynote_2.network.ApiClient;
+import kr.ac.kopo.dodaynote_2.network.ApiService;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class MainActivity extends AppCompatActivity {
 
     FloatingActionButton btn_habit_create;
@@ -56,6 +65,28 @@ public class MainActivity extends AppCompatActivity {
         // 체크박스 영역 클릭 시 완료 처리 로직 실행
         check_1.setOnClickListener(onCheckClickListener);
         check_2.setOnClickListener(onCheckClickListener);
+
+       // 서버 연결 테스트용 코드
+        ApiService apiService = ApiClient.getApiService(); // 공용 싱글톤 객체 호출 [cite: 156, 158]
+
+        apiService.checkConnection().enqueue(new Callback<Map<String, String>>() {
+            @Override
+            public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
+                // 서버로부터 200 OK 정상 응답을 받았을 때 실행
+                if (response.isSuccessful() && response.body() != null) {
+                    String message = response.body().get("message");
+                    Log.d("SERVER_CONNECT", "[정석 구조] 서버 연결 성공: " + message); //
+                } else {
+                    Log.w("SERVER_CONNECT", "[정석 구조] 서버 접속은 했으나 응답 실패 코드: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Map<String, String>> call, Throwable t) {
+                // 서버가 꺼져있거나, IP가 틀렸거나, 인터넷 권한이 없을 때 실행
+                Log.e("SERVER_CONNECT", "[정석 구조] 서버 연결 실패 원인: " + t.getMessage()); //
+            }
+        });
     }
 
     View.OnClickListener onClickListener = new View.OnClickListener() {

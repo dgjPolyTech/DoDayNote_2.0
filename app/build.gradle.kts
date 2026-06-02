@@ -42,6 +42,13 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.2.0-beta01")
     implementation("com.google.android.material:material:1.11.0") // FAB 사용을 위해 필요
 
+    // retrofit 라이브러리 사용하기 위해 추가.
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // API Docs 자동 생성을 위한 Swagger 라이브러리
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
