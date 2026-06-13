@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -25,6 +26,12 @@ import androidx.core.view.WindowInsetsCompat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+
+import kr.ac.kopo.dodaynote_2.domain.Habit;
+import kr.ac.kopo.dodaynote_2.network.ApiClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class HabitCreateActivity extends AppCompatActivity {
 
@@ -108,8 +115,24 @@ public class HabitCreateActivity extends AppCompatActivity {
                 return;
             }
 
-            // 모든 검사 통과 시
-            Toast.makeText(this, "버튼 클릭! 습관 형성을 시작합니다.", Toast.LENGTH_SHORT).show();
+            Habit newHabit = new Habit();
+            newHabit.setTitle(title);
+
+            ApiClient.getApiService().createHabit(newHabit).enqueue(new Callback<Habit>() {
+                @Override
+                public void onResponse(Call<Habit> call, Response<Habit> response) {
+                    if(response.isSuccessful()) {
+                        Log.d("SERVER_DB_SAVE", "저장 성공!");
+                        Toast.makeText(HabitCreateActivity.this, "버튼 클릭! 습관 형성을 시작합니다.", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Habit> call, Throwable t) {
+                    Log.e("SERVER_DB_SAVE", "저장 실패: " + t.getMessage());
+                }
+            });
         });
 
         // NumberPicker 설정

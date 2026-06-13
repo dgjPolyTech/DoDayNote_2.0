@@ -28,6 +28,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+
+        // api 서버 연동을 위한 옵션(아래 것을 쓰겠다는 의미)
+        isCoreLibraryDesugaringEnabled = true
     }
 }
 
@@ -46,10 +49,10 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
-    // API Docs 자동 생성을 위한 Swagger 라이브러리
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
-
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
+
+    // api 서버 연동을 위한 옵션
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }
