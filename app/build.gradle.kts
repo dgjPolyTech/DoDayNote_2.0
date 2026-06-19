@@ -55,4 +55,7 @@ dependencies {
 
     // api 서버 연동을 위한 옵션
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+
+    // MPAndroidChart 라이브러리 추가
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }

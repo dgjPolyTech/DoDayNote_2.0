@@ -29,6 +29,10 @@
             android:exported="true" />
 
         <activity
+            android:name=".HabitPlayActivity"
+            android:exported="true" />
+
+        <activity
             android:name=".HabitCreateActivity"
             android:exported="true" />
 
