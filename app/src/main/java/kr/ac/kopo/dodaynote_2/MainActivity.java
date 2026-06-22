@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -29,14 +30,17 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import androidx.recyclerview.widget.RecyclerView;
+
 public class MainActivity extends AppCompatActivity {
 
     FloatingActionButton btn_habit_create;
-    CardView layout_habit_1, layout_habit_2;
     Button btn_habit_list;
+    TextView text_total_habits;
 
-    // 체크박스 뷰를 담을 변수 추가
-    View check_1, check_2;
+    // 리사이클러뷰 관련 변수
+    RecyclerView recyclerHabits;
+    HabitAdapter habitAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,23 +56,42 @@ public class MainActivity extends AppCompatActivity {
 
         btn_habit_create = findViewById(R.id.btn_habit_create);
         btn_habit_list = findViewById(R.id.btn_habit_list);
+        text_total_habits = findViewById(R.id.text_total_habits);
 
-        layout_habit_1 = findViewById(R.id.layout_habit_1);
-        layout_habit_2 = findViewById(R.id.layout_habit_2);
+        // 리사이클러뷰 설정
+        recyclerHabits = findViewById(R.id.recycler_habits);
+        habitAdapter = new HabitAdapter(new HabitAdapter.OnHabitClickListener() {
+            @Override
+            public void onHabitClick(Habit habit) {
+                Intent intent = new Intent(MainActivity.this, HabitDetailActivity.class);
+                intent.putExtra("habit_title", habit.getTitle());
+                startActivity(intent);
+            }
 
-        check_1 = layout_habit_1.findViewById(R.id.check_habit_done);
-        check_2 = layout_habit_2.findViewById(R.id.check_habit_done);
+            @Override
+            public void onCheckClick(Habit habit, View checkView, CardView cardView) {
+                // 완료 상태 토글
+                boolean newState = !habit.isDone();
+                habit.setDone(newState);
+                
+                if (newState) {
+                    cardView.setAlpha(0.5f);
+                    cardView.setCardBackgroundColor(Color.parseColor("#E0E0E0"));
+                    checkView.setBackgroundResource(R.drawable.shape_checkbox_checked);
+                    Toast.makeText(MainActivity.this, "습관 완료!", Toast.LENGTH_SHORT).show();
+                } else {
+                    cardView.setAlpha(1.0f);
+                    cardView.setCardBackgroundColor(Color.WHITE);
+                    checkView.setBackgroundResource(R.drawable.shape_checkbox_outline);
+                    Toast.makeText(MainActivity.this, "다시 도전!", Toast.LENGTH_SHORT).show();
+                }
+                // TODO: 서버에도 상태 변경 저장 필요 시 ApiService에 PATCH/PUT 요청 추가 가능
+            }
+        });
+        recyclerHabits.setAdapter(habitAdapter);
 
         btn_habit_create.setOnClickListener(onClickListener);
         btn_habit_list.setOnClickListener(onClickListener);
-
-        // 카드 자체는 클릭 시 상세 화면으로 이동
-        layout_habit_1.setOnClickListener(onClickListener);
-        layout_habit_2.setOnClickListener(onClickListener);
-
-        // 체크박스 영역 클릭 시 완료 처리 로직 실행
-        check_1.setOnClickListener(onCheckClickListener);
-        check_2.setOnClickListener(onCheckClickListener);
     }
 
     @Override
@@ -84,12 +107,19 @@ public class MainActivity extends AppCompatActivity {
                 if(response.isSuccessful() && response.body() != null) {
                     List<Habit> habitList = response.body();
                     Log.d("SERVER_DB_LOAD", "데이터 불러오기 성공! 개수: " + habitList.size());
+                    
+                    // 어댑터에 데이터 전달
+                    habitAdapter.setHabits(habitList);
+                    
+                    // 전체 습관 수 텍스트 업데이트
+                    text_total_habits.setText("전체 습관 수: " + habitList.size() + "개");
                 }
             }
 
             @Override
             public void onFailure(Call<List<Habit>> call, Throwable t) {
                 Log.e("SERVER_DB_LOAD", "불러오기 실패: " + t.getMessage());
+                Toast.makeText(MainActivity.this, "서버 연결 실패", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -103,39 +133,6 @@ public class MainActivity extends AppCompatActivity {
             } else if(v.getId() == R.id.btn_habit_list) {
                 Intent intent = new Intent(MainActivity.this, HabitListActivity.class);
                 startActivity(intent);
-            } else {
-                Intent intent = new Intent(MainActivity.this, HabitDetailActivity.class);
-                if (v.getId() == R.id.layout_habit_1) {
-                    intent.putExtra("habit_title", "매일 20분 걷기");
-                } else if (v.getId() == R.id.layout_habit_2) {
-                    intent.putExtra("habit_title", "물 2L 마시기");
-                }
-                startActivity(intent);
-            }
-        }
-    };
-
-    View.OnClickListener onCheckClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            CardView parentCard;
-            if (v == check_1) parentCard = layout_habit_1;
-            else parentCard = layout_habit_2;
-
-            if (parentCard.getAlpha() == 1.0f) {
-                parentCard.setAlpha(0.5f);
-                parentCard.setCardBackgroundColor(Color.parseColor("#E0E0E0"));
-
-                v.setBackgroundResource(R.drawable.shape_checkbox_checked);
-
-                Toast.makeText(MainActivity.this, "습관 완료!", Toast.LENGTH_SHORT).show();
-            } else {
-                parentCard.setAlpha(1.0f);
-                parentCard.setCardBackgroundColor(Color.WHITE);
-
-                v.setBackgroundResource(R.drawable.shape_checkbox_outline);
-
-                Toast.makeText(MainActivity.this, "다시 도전!", Toast.LENGTH_SHORT).show();
             }
         }
     };

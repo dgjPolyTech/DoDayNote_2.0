@@ -59,33 +59,15 @@
 
         </LinearLayout>
 
-        <ScrollView
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_habits"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:fillViewport="true">
-
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="16dp">
-
-                <include
-                    android:id="@+id/layout_habit_1"
-                    layout="@layout/item_habit_card" />
-
-                <include
-                    android:id="@+id/layout_habit_2"
-                    layout="@layout/item_habit_card" />
-
-                <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
-                <include layout="@layout/item_habit_card" />
-            </LinearLayout>
-        </ScrollView>
+            android:paddingHorizontal="16dp"
+            android:clipToPadding="false"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_habit_card" />
 
         <!-- 하단 푸터 프래그먼트 컨테이너 -->
         <androidx.fragment.app.FragmentContainerView

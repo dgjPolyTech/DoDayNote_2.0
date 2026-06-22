@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_2"
+    android:padding="24dp"
+    tools:context=".HabitPlayActivity">
+
+    <!-- 상단 헤더 영역 -->
+    <ImageButton
+        android:id="@+id/btn_close_play"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="닫기"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#70C18E" />
+
+    <TextView
+        android:id="@+id/text_play_habit_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:fontFamily="@font/inter"
+        android:gravity="center"
+        android:text="매일 20분 걷기"
+        android:textColor="#333333"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_close_play" />
+
+    <TextView
+        android:id="@+id/text_play_subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/inter"
+        android:text="오늘의 습관을 실천해 보세요!"
+        android:textColor="#888888"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_play_habit_title" />
+
+    <!-- 중앙 타이머 그래픽 영역 (ConstraintLayout 안의 FrameLayout) -->
+    <FrameLayout
+        android:id="@+id/layout_timer_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/text_play_guide"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_play_subtitle">
+
+        <!-- 원형 프로그레스 바 -->
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progress_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:indicatorColor="#70C18E"
+            app:indicatorSize="260dp"
+            app:trackColor="#EBF7F0"
+            app:trackCornerRadius="8dp"
+            app:trackThickness="14dp" />
+
+        <!-- 텍스트 영역 (시간 정보) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/text_timer_countdown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/inter"
+                android:text="20:00"
+                android:textColor="#2D3A30"
+                android:textSize="48sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/text_timer_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/inter"
+                android:text="준비됨"
+                android:textColor="#888888"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- 하단 격려 가이드 문구 -->
+    <TextView
+        android:id="@+id/text_play_guide"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:fontFamily="@font/inter"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:text="포기하지 말고 끝까지 완료해봐요!\n중간에 멈추면 언제든 이어서 할 수 있습니다."
+        android:textColor="#777777"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toTopOf="@id/layout_controls"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- 하단 컨트롤 버튼 영역 -->
+    <LinearLayout
+        android:id="@+id/layout_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <!-- 중단/저장 버튼 -->
+            <Button
+                android:id="@+id/btn_stop_timer"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_marginEnd="12dp"
+                android:layout_weight="1"
+                android:backgroundTint="#EBF7F0"
+                android:fontFamily="@font/inter"
+                android:text="기록하고 종료"
+                android:textColor="#70C18E"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:cornerRadius="16dp" />
+
+            <!-- 시작/일시정지 토글 버튼 (메인 스타일) -->
+            <Button
+                android:id="@+id/btn_toggle_timer"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1.2"
+                android:backgroundTint="#70C18E"
+                android:fontFamily="@font/inter"
+                android:text="시작하기"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:cornerRadius="16dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
