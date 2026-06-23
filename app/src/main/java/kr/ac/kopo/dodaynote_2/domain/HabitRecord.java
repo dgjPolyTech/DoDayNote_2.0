@@ -1,8 +1,11 @@
 package kr.ac.kopo.dodaynote_2.domain;
 
+import com.google.gson.annotations.SerializedName;
+
 public class HabitRecord {
     private Long id;
     private String recordDate;
+    @SerializedName(value = "isDone", alternate = {"done", "is_done"})
     private boolean isDone;
     private int progressMinutes;
 

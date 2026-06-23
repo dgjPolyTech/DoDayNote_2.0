@@ -24,4 +24,7 @@ public interface ApiService {
             @Path("habitId") Long habitId,
             @Body Map<String, Integer> request
     );
+
+    @POST("api/habits/{habitId}/records/toggle")
+    Call<HabitRecord> toggleHabitDone(@Path("habitId") Long habitId);
 }

@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new java.util.Date());
                 if (habit.getRecords() != null) {
                     for (HabitRecord record : habit.getRecords()) {
-                        if (today.equals(record.getRecordDate())) {
+                        if (record.getRecordDate() != null && record.getRecordDate().startsWith(today)) {
                             todayProgress = record.getProgressMinutes();
                             break;
                         }
@@ -87,43 +87,74 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCheckClick(Habit habit, View checkView, CardView cardView) {
-                // 1. 오늘 날짜 구하기
-                String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new java.util.Date());
-                HabitRecord todayRecord = null;
+            public void onCheckClick(Habit habit, int position) {
+                // 특정 고정 날짜가 아닌, 서버에서 내려온 '가장 최근 기록' 혹은 '가장 최신 날짜'를 기준으로 판단하도록 로직 개선
+                HabitRecord latestRecord = null;
+                if (habit.getRecords() != null && !habit.getRecords().isEmpty()) {
+                    // 마지막 기록을 최신으로 간주 (서버에서 날짜순 정렬해서 준다고 가정)
+                    latestRecord = habit.getRecords().get(habit.getRecords().size() - 1);
+                }
 
-                // 2. 오늘 자 기록 찾기
-                if (habit.getRecords() != null) {
-                    for (HabitRecord record : habit.getRecords()) {
-                        if (today.equals(record.getRecordDate())) {
-                            todayRecord = record;
-                            break;
+                boolean isDoneNow = (latestRecord != null) && latestRecord.isDone();
+                
+                Log.d("HABIT_DEBUG", "Habit: " + habit.getTitle() + ", Latest record isDone: " + isDoneNow);
+
+                if (isDoneNow) {
+                    new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this)
+                            .setTitle("실천 취소")
+                            .setMessage("오늘의 실천 기록을 취소하시겠습니까?")
+                            .setPositiveButton("확인", (dialog, which) -> toggleHabitStatus(habit, position))
+                            .setNegativeButton("취소", null)
+                            .show();
+                } else {
+                    toggleHabitStatus(habit, position);
+                }
+            }
+
+            private void toggleHabitStatus(Habit habit, int position) {
+                ApiClient.getApiService().toggleHabitDone(habit.getId()).enqueue(new Callback<HabitRecord>() {
+                    @Override
+                    public void onResponse(Call<HabitRecord> call, Response<HabitRecord> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            HabitRecord updatedRecord = response.body();
+                            Log.d("HABIT_DEBUG", "Response Record: " + updatedRecord.getRecordDate() + ", isDone: " + updatedRecord.isDone());
+
+                            List<HabitRecord> records = habit.getRecords();
+                            if (records == null) {
+                                records = new java.util.ArrayList<>();
+                                habit.setRecords(records);
+                            }
+
+                            // 날짜 기반으로 기존 기록 찾아서 업데이트 (기기 날짜가 아닌 서버가 준 날짜 기준)
+                            boolean found = false;
+                            String updatedDateStr = updatedRecord.getRecordDate(); 
+                            // 시분초 제외한 yyyy-MM-dd 추출
+                            String updatedDay = (updatedDateStr != null && updatedDateStr.length() >= 10) 
+                                    ? updatedDateStr.substring(0, 10) : updatedDateStr;
+
+                            for (int i = 0; i < records.size(); i++) {
+                                String existingDate = records.get(i).getRecordDate();
+                                if (existingDate != null && existingDate.startsWith(updatedDay)) {
+                                    records.set(i, updatedRecord);
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found) records.add(updatedRecord);
+
+                            habitAdapter.notifyItemChanged(position);
+                            String msg = updatedRecord.isDone() ? "오늘 습관 완료!" : "다시 도전!";
+                            Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "상태 업데이트 실패", Toast.LENGTH_SHORT).show();
                         }
                     }
-                }
 
-                // 3. 오늘 기록이 없으면 처리 (아직 시작 안 함)
-                if (todayRecord == null) {
-                    Toast.makeText(MainActivity.this, "실천하기를 먼저 시작해주세요!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                // 4. 완료 상태 토글
-                boolean newState = !todayRecord.isDone();
-                todayRecord.setDone(newState);
-                
-                if (newState) {
-                    cardView.setAlpha(0.5f);
-                    cardView.setCardBackgroundColor(Color.parseColor("#E0E0E0"));
-                    checkView.setBackgroundResource(R.drawable.shape_checkbox_checked);
-                    Toast.makeText(MainActivity.this, "오늘 습관 완료!", Toast.LENGTH_SHORT).show();
-                } else {
-                    cardView.setAlpha(1.0f);
-                    cardView.setCardBackgroundColor(Color.WHITE);
-                    checkView.setBackgroundResource(R.drawable.shape_checkbox_outline);
-                    Toast.makeText(MainActivity.this, "다시 도전!", Toast.LENGTH_SHORT).show();
-                }
-                // TODO: 서버에도 상태 변경 저장 필요 시 ApiService에 PATCH/PUT 요청 추가 가능
+                    @Override
+                    public void onFailure(Call<HabitRecord> call, Throwable t) {
+                        Toast.makeText(MainActivity.this, "네트워크 오류 발생", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
         recyclerHabits.setAdapter(habitAdapter);

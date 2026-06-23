@@ -23,7 +23,7 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
 
     public interface OnHabitClickListener {
         void onHabitClick(Habit habit);
-        void onCheckClick(Habit habit, View checkView, CardView cardView);
+        void onCheckClick(Habit habit, int position);
     }
 
     public HabitAdapter(OnHabitClickListener listener) {
@@ -69,25 +69,18 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
 
         public void bind(final Habit habit, final OnHabitClickListener listener) {
             textTitle.setText(habit.getTitle());
-            // 날짜 데이터가 Habit 도메인에 아직 없는 것 같아 하드코딩 유지하거나 빈 값 처리
             textDate.setText("습관 진행 중"); 
 
-            // 오늘 날짜 구하기
-            String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(new java.util.Date());
-            boolean isDoneToday = false;
-
-            // 오늘 자 기록이 있는지 확인하고 완료 여부 파악
-            if (habit.getRecords() != null) {
-                for (HabitRecord record : habit.getRecords()) {
-                    if (today.equals(record.getRecordDate())) {
-                        isDoneToday = record.isDone();
-                        break;
-                    }
-                }
+            boolean isDoneAny = false;
+            // 기기 날짜와 상관없이, 리스트에 있는 기록 중 하나라도 완료된 상태인지 확인
+            // (서버가 오늘의 기록만 보낸다고 가정하거나, 가장 최근 기록을 기준으로 판단)
+            if (habit.getRecords() != null && !habit.getRecords().isEmpty()) {
+                // 가장 마지막 레코드의 상태를 현재 상태로 간주
+                isDoneAny = habit.getRecords().get(habit.getRecords().size() - 1).isDone();
             }
 
             // 완료 상태에 따른 UI 처리
-            updateUI(isDoneToday);
+            updateUI(isDoneAny);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -99,20 +92,24 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
             checkDone.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (listener != null) listener.onCheckClick(habit, checkDone, cardView);
+                    if (listener != null) listener.onCheckClick(habit, getAdapterPosition());
                 }
             });
         }
 
         private void updateUI(boolean isDone) {
             if (isDone) {
-                cardView.setAlpha(0.5f);
-                cardView.setCardBackgroundColor(Color.parseColor("#E0E0E0"));
+                cardView.setAlpha(0.4f);
+                cardView.setCardBackgroundColor(Color.parseColor("#D3D3D3"));
                 checkDone.setBackgroundResource(R.drawable.shape_checkbox_checked);
+                textTitle.setPaintFlags(textTitle.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
+                textTitle.setTextColor(Color.DKGRAY);
             } else {
                 cardView.setAlpha(1.0f);
                 cardView.setCardBackgroundColor(Color.WHITE);
                 checkDone.setBackgroundResource(R.drawable.shape_checkbox_outline);
+                textTitle.setPaintFlags(textTitle.getPaintFlags() & (~android.graphics.Paint.STRIKE_THRU_TEXT_FLAG));
+                textTitle.setTextColor(Color.BLACK);
             }
         }
     }
