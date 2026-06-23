@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import kr.ac.kopo.dodaynote_2.domain.Habit;
+import kr.ac.kopo.dodaynote_2.domain.HabitRecord;
 
 public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHolder> {
 
@@ -71,8 +72,22 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
             // 날짜 데이터가 Habit 도메인에 아직 없는 것 같아 하드코딩 유지하거나 빈 값 처리
             textDate.setText("습관 진행 중"); 
 
+            // 오늘 날짜 구하기
+            String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(new java.util.Date());
+            boolean isDoneToday = false;
+
+            // 오늘 자 기록이 있는지 확인하고 완료 여부 파악
+            if (habit.getRecords() != null) {
+                for (HabitRecord record : habit.getRecords()) {
+                    if (today.equals(record.getRecordDate())) {
+                        isDoneToday = record.isDone();
+                        break;
+                    }
+                }
+            }
+
             // 완료 상태에 따른 UI 처리
-            updateUI(habit.isDone());
+            updateUI(isDoneToday);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

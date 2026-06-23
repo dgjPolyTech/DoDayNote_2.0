@@ -32,8 +32,10 @@ public class HabitDetailActivity extends AppCompatActivity {
     Button btnUpdate;
     Button btnPlay;
 
+    private Long habitId;
     private String habitTitle = "";
     private int habitDuration = 20;
+    private int todayProgress = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,11 +43,13 @@ public class HabitDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_habit_detail);
 
         // 상단 타이틀 설정
+        habitId = getIntent().getLongExtra("habit_id", -1L);
         habitTitle = getIntent().getStringExtra("habit_title");
         if (habitTitle == null) {
             habitTitle = "매일 20분 걷기";
         }
-        habitDuration = getIntent().getIntExtra("duration", 20);
+        habitDuration = getIntent().getIntExtra("target_minutes", 20);
+        todayProgress = getIntent().getIntExtra("today_progress", 0);
 
         TextView textHabitTitle = findViewById(R.id.text_habit_title);
         textHabitTitle.setText(habitTitle);
@@ -209,8 +213,10 @@ public class HabitDetailActivity extends AppCompatActivity {
 
             } else if(v.getId() == R.id.btn_play) {
                 Intent intent = new Intent(HabitDetailActivity.this, HabitPlayActivity.class);
+                intent.putExtra("habit_id", habitId);
                 intent.putExtra("habit_title", habitTitle);
-                intent.putExtra("duration", habitDuration);
+                intent.putExtra("target_minutes", habitDuration);
+                intent.putExtra("today_progress", todayProgress);
                 startActivity(intent);
             } else if(v.getId() == R.id.btn_close) {
                 finish();

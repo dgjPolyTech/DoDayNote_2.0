@@ -16,13 +16,16 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import kr.ac.kopo.dodaynote_2.domain.Habit;
+import kr.ac.kopo.dodaynote_2.domain.HabitRecord;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 // 서버 통신(Retrofit)을 위해 필요한 정석 라이브러리 및 패키지 임포트
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import kr.ac.kopo.dodaynote_2.network.ApiClient;
 import kr.ac.kopo.dodaynote_2.network.ApiService;
@@ -64,21 +67,56 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onHabitClick(Habit habit) {
                 Intent intent = new Intent(MainActivity.this, HabitDetailActivity.class);
+                intent.putExtra("habit_id", habit.getId());
                 intent.putExtra("habit_title", habit.getTitle());
+                intent.putExtra("target_minutes", habit.getTargetMinutes());
+                
+                // 오늘 날짜 기록 찾기
+                int todayProgress = 0;
+                String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new java.util.Date());
+                if (habit.getRecords() != null) {
+                    for (HabitRecord record : habit.getRecords()) {
+                        if (today.equals(record.getRecordDate())) {
+                            todayProgress = record.getProgressMinutes();
+                            break;
+                        }
+                    }
+                }
+                intent.putExtra("today_progress", todayProgress);
                 startActivity(intent);
             }
 
             @Override
             public void onCheckClick(Habit habit, View checkView, CardView cardView) {
-                // 완료 상태 토글
-                boolean newState = !habit.isDone();
-                habit.setDone(newState);
+                // 1. 오늘 날짜 구하기
+                String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new java.util.Date());
+                HabitRecord todayRecord = null;
+
+                // 2. 오늘 자 기록 찾기
+                if (habit.getRecords() != null) {
+                    for (HabitRecord record : habit.getRecords()) {
+                        if (today.equals(record.getRecordDate())) {
+                            todayRecord = record;
+                            break;
+                        }
+                    }
+                }
+
+                // 3. 오늘 기록이 없으면 처리 (아직 시작 안 함)
+                if (todayRecord == null) {
+                    Toast.makeText(MainActivity.this, "실천하기를 먼저 시작해주세요!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // 4. 완료 상태 토글
+                boolean newState = !todayRecord.isDone();
+                todayRecord.setDone(newState);
                 
                 if (newState) {
                     cardView.setAlpha(0.5f);
                     cardView.setCardBackgroundColor(Color.parseColor("#E0E0E0"));
                     checkView.setBackgroundResource(R.drawable.shape_checkbox_checked);
-                    Toast.makeText(MainActivity.this, "습관 완료!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "오늘 습관 완료!", Toast.LENGTH_SHORT).show();
                 } else {
                     cardView.setAlpha(1.0f);
                     cardView.setCardBackgroundColor(Color.WHITE);

@@ -4,8 +4,6 @@ import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -43,11 +41,11 @@ public class HabitCreateActivity extends AppCompatActivity {
     private Switch switchAlarm;
     private TextView textResult;
     private ImageButton btn_close;
-    private Button btn_done; // '습관 형성 시작' 버튼 추가
+    private Button btn_done;
 
-    // 시작일과 종료일을 저장할 Calendar 객체
     private Calendar startCalendar, endCalendar;
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd", Locale.getDefault());
+    private SimpleDateFormat apiSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,9 +59,52 @@ public class HabitCreateActivity extends AppCompatActivity {
             return insets;
         });
 
-        // 뷰 바인딩
+        initViews();
+        initCalendars();
+
+        btn_close.setOnClickListener(v -> finish());
+        cardStartDate.setOnClickListener(v -> showDatePicker(true));
+        cardEndDate.setOnClickListener(v -> showDatePicker(false));
+
+        btn_done.setOnClickListener(v -> {
+            String title = editHabitTitle.getText().toString().trim();
+            if (title.isEmpty()) {
+                Toast.makeText(this, "습관 이름을 입력해주세요.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Habit habit = new Habit();
+            habit.setTitle(title);
+            habit.setStartDate(apiSdf.format(startCalendar.getTime()));
+            habit.setEndDate(apiSdf.format(endCalendar.getTime()));
+            habit.setAlertOn(switchAlarm.isChecked());
+            habit.setTargetMinutes(pickerDuration.getValue());
+
+            ApiClient.getApiService().createHabit(habit).enqueue(new Callback<Habit>() {
+                @Override
+                public void onResponse(Call<Habit> call, Response<Habit> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(HabitCreateActivity.this, "습관 형성을 시작합니다.", Toast.LENGTH_SHORT).show();
+                        finish();
+                    } else {
+                        Toast.makeText(HabitCreateActivity.this, "저장에 실패했습니다.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Habit> call, Throwable t) {
+                    Toast.makeText(HabitCreateActivity.this, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+
+        setupListeners();
+        updateSummary();
+    }
+
+    private void initViews() {
         btn_close = findViewById(R.id.btn_close);
-        btn_done = findViewById(R.id.btn_done); // 버튼 바인딩 추가
+        btn_done = findViewById(R.id.btn_done);
         editHabitTitle = findViewById(R.id.edit_habit_title);
         cardStartDate = findViewById(R.id.card_start_date);
         cardEndDate = findViewById(R.id.card_end_date);
@@ -81,72 +122,20 @@ public class HabitCreateActivity extends AppCompatActivity {
         checkSun = findViewById(R.id.check_sun);
         switchAlarm = findViewById(R.id.switch_alarm);
 
-        // 초기값 설정
-        startCalendar = Calendar.getInstance();
-        endCalendar = (Calendar) startCalendar.clone();
-        endCalendar.add(Calendar.DAY_OF_MONTH, 30); // 기본 30일 설정
-
-        updateDateLabels();
-
-        // 닫기 버튼
-        btn_close.setOnClickListener(v -> finish());
-
-        // 시작일 선택
-        cardStartDate.setOnClickListener(v -> showDatePicker(true));
-
-        // 종료일 선택
-        cardEndDate.setOnClickListener(v -> showDatePicker(false));
-
-        // 습관 형성 시작 버튼 클릭 리스너 및 유효성 검사 추가
-        btn_done.setOnClickListener(v -> {
-            String title = editHabitTitle.getText().toString().trim();
-            long diff = endCalendar.getTimeInMillis() - startCalendar.getTimeInMillis();
-            int durationDays = (int) (diff / (24 * 60 * 60 * 1000)) + 1;
-
-            // 1. 제목 입력 검사
-            if (title.isEmpty()) {
-                Toast.makeText(this, "오류: 습관 이름을 입력해주세요.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // 2. 실천 기간 검사 (마이너스 일수 방지)
-            if (durationDays < 1) {
-                Toast.makeText(this, "오류: 종료일은 시작일 이후여야 합니다.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            Habit newHabit = new Habit();
-            newHabit.setTitle(title);
-
-            ApiClient.getApiService().createHabit(newHabit).enqueue(new Callback<Habit>() {
-                @Override
-                public void onResponse(Call<Habit> call, Response<Habit> response) {
-                    if(response.isSuccessful()) {
-                        Log.d("SERVER_DB_SAVE", "저장 성공!");
-                        Toast.makeText(HabitCreateActivity.this, "버튼 클릭! 습관 형성을 시작합니다.", Toast.LENGTH_SHORT).show();
-                        finish();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<Habit> call, Throwable t) {
-                    Log.e("SERVER_DB_SAVE", "저장 실패: " + t.getMessage());
-                }
-            });
-        });
-
-        // NumberPicker 설정
         pickerDuration.setMinValue(5);
         pickerDuration.setMaxValue(120);
         pickerDuration.setValue(30);
+    }
 
-        setupListeners();
-        updateSummary();
+    private void initCalendars() {
+        startCalendar = Calendar.getInstance();
+        endCalendar = (Calendar) startCalendar.clone();
+        endCalendar.add(Calendar.DAY_OF_MONTH, 30);
+        updateDateLabels();
     }
 
     private void showDatePicker(boolean isStartDate) {
         Calendar targetCal = isStartDate ? startCalendar : endCalendar;
-
         DatePickerDialog dialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
             if (isStartDate) {
                 startCalendar.set(year, month, dayOfMonth);
@@ -156,7 +145,6 @@ public class HabitCreateActivity extends AppCompatActivity {
             updateDateLabels();
             updateSummary();
         }, targetCal.get(Calendar.YEAR), targetCal.get(Calendar.MONTH), targetCal.get(Calendar.DAY_OF_MONTH));
-
         dialog.show();
     }
 
@@ -190,11 +178,7 @@ public class HabitCreateActivity extends AppCompatActivity {
         if (title.isEmpty()) title = "(습관 이름)";
 
         long diff = endCalendar.getTimeInMillis() - startCalendar.getTimeInMillis();
-        int durationDays = (int) (diff / (24 * 60 * 60 * 1000)) + 1;
-
-        // 요약창에서는 마이너스가 나와도 그대로 보여주거나 0으로 처리 (유효성 검사는 버튼에서 수행)
-        int displayDays = Math.max(durationDays, 0);
-
+        int displayDays = Math.max((int) (diff / (24 * 60 * 60 * 1000)) + 1, 0);
         int minutes = pickerDuration.getValue();
 
         StringBuilder daysBuilder = new StringBuilder();
@@ -202,23 +186,20 @@ public class HabitCreateActivity extends AppCompatActivity {
         if (checkTue.isChecked()) daysBuilder.append("화 ");
         if (checkWed.isChecked()) daysBuilder.append("수 ");
         if (checkThu.isChecked()) daysBuilder.append("목 ");
-        if (checkFri.isChecked()) daysBuilder.append("금 "); // 기존 오타 수정 완료 (checkThu -> checkFri)
+        if (checkFri.isChecked()) daysBuilder.append("금 ");
         if (checkSat.isChecked()) daysBuilder.append("토 ");
         if (checkSun.isChecked()) daysBuilder.append("일 ");
 
         String days = daysBuilder.toString().trim();
         if (days.isEmpty()) days = "매일";
 
-        String alarmStatus = switchAlarm.isChecked() ? "ON" : "OFF";
-
         String summary = String.format(
                 "%s ~ %s (%d일간)\n" +
                         "하루 %d분씩 [%s]을(를) %s에 합니다.\n" +
                         "알림 설정: %s",
                 sdf.format(startCalendar.getTime()), sdf.format(endCalendar.getTime()), displayDays,
-                minutes, title, days, alarmStatus
+                minutes, title, days, switchAlarm.isChecked() ? "ON" : "OFF"
         );
-
         textResult.setText(summary);
     }
 }

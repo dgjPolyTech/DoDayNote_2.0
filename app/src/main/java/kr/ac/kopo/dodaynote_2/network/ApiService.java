@@ -1,11 +1,16 @@
 package kr.ac.kopo.dodaynote_2.network;
 
 import java.util.List;
+import java.util.Map;
+
 import kr.ac.kopo.dodaynote_2.domain.Habit;
+import kr.ac.kopo.dodaynote_2.domain.HabitRecord;
+
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 public interface ApiService {
     @POST("/api/habits")
@@ -13,4 +18,10 @@ public interface ApiService {
 
     @GET("/api/habits")
     Call<List<Habit>> getAllHabits();
+
+    @POST("/api/habits/{habitId}/records")
+    Call<HabitRecord> addProgress(
+            @Path("habitId") Long habitId,
+            @Body Map<String, Integer> request
+    );
 }

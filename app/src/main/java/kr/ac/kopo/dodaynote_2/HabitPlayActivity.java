@@ -3,6 +3,7 @@ package kr.ac.kopo.dodaynote_2;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -13,7 +14,15 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+
+import kr.ac.kopo.dodaynote_2.domain.HabitRecord;
+import kr.ac.kopo.dodaynote_2.network.ApiClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class HabitPlayActivity extends AppCompatActivity {
 
@@ -26,9 +35,12 @@ public class HabitPlayActivity extends AppCompatActivity {
     private ImageButton btnClosePlay;
 
     private String habitTitle;
-    private int totalDurationMinutes;
+    private Long habitId;
+    private int targetMinutes;
+    private int todayProgressMinutes;
     private long timeTotalInMillis;
     private long timeLeftInMillis;
+    private long sessionStartLeftInMillis;
 
     private CountDownTimer countDownTimer;
     private boolean isTimerRunning = false;
@@ -39,15 +51,28 @@ public class HabitPlayActivity extends AppCompatActivity {
         setContentView(R.layout.activity_habit_play);
 
         // Intent 데이터 수신
+        habitId = getIntent().getLongExtra("habit_id", -1L);
         habitTitle = getIntent().getStringExtra("habit_title");
         if (habitTitle == null) {
             habitTitle = "매일 20분 걷기";
         }
-        totalDurationMinutes = getIntent().getIntExtra("duration", 20);
+        targetMinutes = getIntent().getIntExtra("target_minutes", 20);
+        todayProgressMinutes = getIntent().getIntExtra("today_progress", 0);
 
-        // 초기 밀리초 설정 (분 * 60초 * 1000)
-        timeTotalInMillis = (long) totalDurationMinutes * 60 * 1000;
-        timeLeftInMillis = timeTotalInMillis;
+        // 전체 목표 시간 (분 -> 밀리초)
+        timeTotalInMillis = (long) targetMinutes * 60 * 1000;
+        
+        // 남은 시간 계산 (이어서 하기 로직)
+        long alreadyDoneInMillis = (long) todayProgressMinutes * 60 * 1000;
+        timeLeftInMillis = timeTotalInMillis - alreadyDoneInMillis;
+        
+        // 현재 세션 시작 시점의 남은 시간 저장 (증분 계산용)
+        sessionStartLeftInMillis = timeLeftInMillis;
+
+        if (timeLeftInMillis <= 0) {
+            timeLeftInMillis = 0;
+            Toast.makeText(this, "이미 오늘 목표를 달성했습니다!", Toast.LENGTH_SHORT).show();
+        }
 
         // UI 위젯 연결
         textPlayHabitTitle = findViewById(R.id.text_play_habit_title);
@@ -115,6 +140,9 @@ public class HabitPlayActivity extends AppCompatActivity {
                 btnToggleTimer.setText("완료");
                 btnToggleTimer.setEnabled(false);
                 
+                // 완료 시 서버 저장
+                saveProgressToServer();
+                
                 Toast.makeText(HabitPlayActivity.this, "목표 시간을 달성했습니다! 대단해요!", Toast.LENGTH_LONG).show();
             }
         }.start();
@@ -153,19 +181,46 @@ public class HabitPlayActivity extends AppCompatActivity {
             countDownTimer.cancel();
         }
         
-        long elapsedMillis = timeTotalInMillis - timeLeftInMillis;
-        int elapsedMinutes = (int) (elapsedMillis / 1000) / 60;
-        int elapsedSeconds = (int) (elapsedMillis / 1000) % 60;
-
-        String message;
-        if (elapsedMinutes > 0) {
-            message = String.format(Locale.getDefault(), "총 %d분 %d초 동안 실천을 완료하고 기록했습니다!", elapsedMinutes, elapsedSeconds);
-        } else {
-            message = String.format(Locale.getDefault(), "총 %d초 동안 실천을 완료하고 기록했습니다!", elapsedSeconds);
-        }
-        
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        saveProgressToServer();
         finish();
+    }
+
+    private void saveProgressToServer() {
+        // 이번 세션에서 진행한 시간 계산 (밀리초 -> 분)
+        long sessionElapsedMillis = sessionStartLeftInMillis - timeLeftInMillis;
+        int sessionElapsedMinutes = (int) (sessionElapsedMillis / 1000) / 60;
+
+        if (sessionElapsedMinutes <= 0 && sessionElapsedMillis > 0) {
+            // 1분 미만이라도 실천했다면 최소 1분으로 기록하거나 초 단위 저장이 필요할 수 있음
+            // 일단은 0분 이상인 경우에만 전송
+            sessionElapsedMinutes = 0; 
+        }
+
+        if (habitId == -1L || sessionElapsedMinutes < 0) return;
+
+        Map<String, Integer> request = new HashMap<>();
+        request.put("progressMinutes", sessionElapsedMinutes);
+
+        ApiClient.getApiService().addProgress(habitId, request).enqueue(new Callback<HabitRecord>() {
+            @Override
+            public void onResponse(Call<HabitRecord> call, Response<HabitRecord> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    HabitRecord record = response.body();
+                    if (record.isDone()) {
+                        Toast.makeText(HabitPlayActivity.this, "오늘의 목표 달성! 🏆", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(HabitPlayActivity.this, "실천 기록이 저장되었습니다.", Toast.LENGTH_SHORT).show();
+                    }
+                    // 세션 시작 시점 갱신 (중복 저장 방지)
+                    sessionStartLeftInMillis = timeLeftInMillis;
+                }
+            }
+
+            @Override
+            public void onFailure(Call<HabitRecord> call, Throwable t) {
+                Log.e("API_PROGRESS", "전송 실패: " + t.getMessage());
+            }
+        });
     }
 
     private void confirmExit() {
