@@ -41,35 +41,15 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_habit_history"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:fillViewport="true">
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingHorizontal="16dp"
-            android:paddingBottom="16dp">
-
-            <include
-                android:id="@+id/layout_habit_1"
-                layout="@layout/item_habit_card_complete" />
-
-            <include
-                android:id="@+id/layout_habit_2"
-                layout="@layout/item_habit_card_complete" />
-
-            <include layout="@layout/item_habit_card_complete" />
-            <include layout="@layout/item_habit_card_complete" />
-            <include layout="@layout/item_habit_card_complete" />
-            <include layout="@layout/item_habit_card_complete" />
-            <include layout="@layout/item_habit_card_complete" />
-
-        </LinearLayout>
-    </ScrollView>
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="16dp"
+        android:clipToPadding="false"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
     <LinearLayout
         android:layout_width="match_parent"

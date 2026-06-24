@@ -2,52 +2,79 @@ package kr.ac.kopo.dodaynote_2;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.List;
+
+import kr.ac.kopo.dodaynote_2.domain.Habit;
+import kr.ac.kopo.dodaynote_2.network.ApiClient;
+import kr.ac.kopo.dodaynote_2.network.ApiService;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class HabitListActivity extends AppCompatActivity {
 
-    // 1. 목록에 있는 항목(레이아웃 또는 카드뷰)들을 담을 변수 선언
-    View layout_habit_1, layout_habit_2;
+    private RecyclerView rvHabitHistory;
+    private HabitHistoryAdapter adapter;
+    private TextView textTotalHabits;
+    private ApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_habit_list);
 
+        apiService = ApiClient.getApiService();
+
         TextView btnBack = findViewById(R.id.btn_back);
+        textTotalHabits = findViewById(R.id.text_total_habits);
+        rvHabitHistory = findViewById(R.id.rv_habit_history);
 
-        // 2. XML에 있는 습관 항목 ID 연결
-        // ⚠️ 주의: 실제 activity_habit_list.xml에 부여하신 ID로 이름을 맞춰주세요!
-        layout_habit_1 = findViewById(R.id.layout_habit_1);
-        layout_habit_2 = findViewById(R.id.layout_habit_2);
+        rvHabitHistory.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new HabitHistoryAdapter();
+        rvHabitHistory.setAdapter(adapter);
 
-        // 뒤로가기 버튼 클릭 이벤트
-        btnBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // 뒤로가기 버튼을 누르면 현재 리스트 창을 닫고 이전 화면으로 돌아감
-                finish();
-            }
+        btnBack.setOnClickListener(v -> finish());
+
+        adapter.setOnItemClickListener(habit -> {
+            Intent intent = new Intent(HabitListActivity.this, HabitListDetailActivity.class);
+            intent.putExtra("habit_id", habit.getId());
+            intent.putExtra("habit_title", habit.getTitle());
+            String dateRange = (habit.getStartDate() != null ? habit.getStartDate() : "") + " ~ " +
+                               (habit.getEndDate() != null ? habit.getEndDate() : "");
+            intent.putExtra("habit_date", dateRange);
+            startActivity(intent);
         });
 
-        View.OnClickListener itemClickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(HabitListActivity.this, HabitListDetailActivity.class);
-                startActivity(intent);
-            }
-        };
+        loadCompletedHabits();
+    }
 
-        // 4. 찾아온 뷰 객체에 클릭 리스너 달아주기
-        // (null 체크를 통해 앱이 강제 종료되는 것을 방지합니다)
-        if (layout_habit_1 != null) {
-            layout_habit_1.setOnClickListener(itemClickListener);
-        }
-        if (layout_habit_2 != null) {
-            layout_habit_2.setOnClickListener(itemClickListener);
-        }
+    private void loadCompletedHabits() {
+        apiService.getCompletedHabits().enqueue(new Callback<List<Habit>>() {
+            @Override
+            public void onResponse(Call<List<Habit>> call, Response<List<Habit>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Habit> completedHabits = response.body();
+                    adapter.setItems(completedHabits);
+                    textTotalHabits.setText("전체 습관 수: " + completedHabits.size() + "개");
+                } else {
+                    Toast.makeText(HabitListActivity.this, "데이터를 불러오는데 실패했습니다.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Habit>> call, Throwable t) {
+                Log.e("HabitListActivity", "API 호출 실패", t);
+                Toast.makeText(HabitListActivity.this, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

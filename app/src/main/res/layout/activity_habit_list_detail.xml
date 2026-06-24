@@ -117,9 +117,10 @@
             android:padding="20dp">
 
             <TextView
+                android:id="@+id/text_ai_feedback"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="🏆 총 31일간의 여정을 성공적으로 마무리했습니다! 최종 목표 달성률 89%를 기록하며, 계획했던 습관을 안정적으로 내면화하는 데 성공하셨습니다."
+                android:text="AI 피드백을 불러오는 중입니다..."
                 android:fontFamily="@font/inter"
                 android:textSize="15sp"
                 android:textColor="#555555"
@@ -127,6 +128,8 @@
                 android:layout_marginBottom="18dp"/>
 
             <TextView
+                android:id="@+id/text_feedback_hidden_1"
+                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="📊 데이터 분석 결과, 주중 오전 8시 시간대의 수행률이 96%로 가장 높게 나타났습니다. 이는 사용자님께 가장 최적화된 '습관 골든타임'임을 증명합니다."
@@ -137,6 +140,8 @@
                 android:layout_marginBottom="18dp"/>
 
             <TextView
+                android:id="@+id/text_feedback_hidden_2"
+                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/inter"

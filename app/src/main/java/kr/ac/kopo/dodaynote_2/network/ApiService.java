@@ -24,6 +24,9 @@ public interface ApiService {
     @GET("/api/habits")
     Call<List<Habit>> getAllHabits();
 
+    @GET("/api/habits/completed")
+    Call<List<Habit>> getCompletedHabits();
+
     @POST("/api/habits/{habitId}/records")
     Call<HabitRecord> addProgress(
             @Path("habitId") Long habitId,
