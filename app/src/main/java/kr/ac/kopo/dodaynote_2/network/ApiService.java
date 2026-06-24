@@ -3,6 +3,7 @@ package kr.ac.kopo.dodaynote_2.network;
 import java.util.List;
 import java.util.Map;
 
+import kr.ac.kopo.dodaynote_2.domain.AiFeedbackResponse;
 import kr.ac.kopo.dodaynote_2.domain.Habit;
 import kr.ac.kopo.dodaynote_2.domain.HabitRecord;
 
@@ -30,4 +31,7 @@ public interface ApiService {
 
     @GET("api/habits/{habitId}/records")
     Call<List<HabitRecord>> getHabitRecords(@Path("habitId") Long habitId);
+
+    @GET("api/ai/feedback/{habitId}")
+    Call<AiFeedbackResponse> getAiFeedback(@Path("habitId") Long habitId);
 }

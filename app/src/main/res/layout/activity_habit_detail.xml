@@ -126,24 +126,14 @@
             android:padding="20dp">
 
             <TextView
+                android:id="@+id/text_ai_feedback"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="📈 지난 4주간의 데이터를 분석한 결과, 3주차에 목표 달성률 92%를 기록하며 가장 안정적인 성취도를 보였습니다."
+                android:text="AI가 분석한 통계 피드백을 불러오는 중입니다..."
                 android:fontFamily="@font/inter"
                 android:textSize="15sp"
                 android:textColor="#555555"
-                android:lineSpacingExtra="6dp"
-                android:layout_marginBottom="18dp"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="📉 다만, 주말 시간대의 실천 빈도가 평일 대비 약 15% 하락하는 경향이 발견되었습니다. 주말 집중 관리가 필요해 보입니다."
-                android:fontFamily="@font/inter"
-                android:textSize="15sp"
-                android:textColor="#555555"
-                android:lineSpacingExtra="6dp"
-                android:layout_marginBottom="18dp"/>
+                android:lineSpacingExtra="6dp" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>

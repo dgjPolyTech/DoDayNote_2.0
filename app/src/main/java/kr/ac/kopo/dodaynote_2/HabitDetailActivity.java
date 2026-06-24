@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TreeMap;
 
+import kr.ac.kopo.dodaynote_2.domain.AiFeedbackResponse;
 import kr.ac.kopo.dodaynote_2.domain.HabitRecord;
 import kr.ac.kopo.dodaynote_2.network.ApiClient;
 import retrofit2.Call;
@@ -54,6 +55,7 @@ public class HabitDetailActivity extends AppCompatActivity {
     private boolean isAlertOn = false;
     private int habitDuration = 20;
     private int todayProgress = 0;
+    private TextView textAiFeedback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,8 +119,31 @@ public class HabitDetailActivity extends AppCompatActivity {
         btnUpdate.setOnClickListener(onClickListener);
         btnPlay.setOnClickListener(onClickListener);
 
+        textAiFeedback = findViewById(R.id.text_ai_feedback);
+
         // 서버에서 기록 데이터 로드
         loadHabitRecordsFromServer();
+        loadAiFeedback();
+    }
+
+    private void loadAiFeedback() {
+        if (habitId == -1L) return;
+
+        ApiClient.getApiService().getAiFeedback(habitId).enqueue(new Callback<AiFeedbackResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<AiFeedbackResponse> call, @NonNull Response<AiFeedbackResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    textAiFeedback.setText(response.body().getFeedback());
+                } else {
+                    textAiFeedback.setText("피드백을 불러오는 데 실패했습니다.");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<AiFeedbackResponse> call, @NonNull Throwable t) {
+                textAiFeedback.setText("네트워크 오류가 발생했습니다.");
+            }
+        });
     }
 
     private void loadHabitRecordsFromServer() {
