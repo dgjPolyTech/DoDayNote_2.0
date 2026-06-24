@@ -9,8 +9,10 @@ import kr.ac.kopo.dodaynote_2.domain.HabitRecord;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
 public interface ApiService {
@@ -34,4 +36,10 @@ public interface ApiService {
 
     @GET("api/ai/feedback/{habitId}")
     Call<AiFeedbackResponse> getAiFeedback(@Path("habitId") Long habitId);
+
+    @PUT("/api/habits/{id}")
+    Call<Habit> updateHabit(@Path("id") Long id, @Body Habit habit);
+
+    @DELETE("/api/habits/{id}")
+    Call<Void> deleteHabit(@Path("id") Long id);
 }

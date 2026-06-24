@@ -14,3 +14,8 @@
 .cxx
 local.properties
 /.agents/rules/basic.md
+
+# 안티그래비티 에이전트 규칙 파일 제외
+.agents/
+android-rule.md
+implementation.md

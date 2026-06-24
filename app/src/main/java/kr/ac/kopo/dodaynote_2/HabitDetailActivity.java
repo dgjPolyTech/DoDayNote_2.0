@@ -12,6 +12,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.widget.Toast;
@@ -47,6 +51,7 @@ public class HabitDetailActivity extends AppCompatActivity {
 
     Button btnUpdate;
     Button btnPlay;
+    TextView textDelete;
 
     private Long habitId;
     private String habitTitle = "";
@@ -56,6 +61,18 @@ public class HabitDetailActivity extends AppCompatActivity {
     private int habitDuration = 20;
     private int todayProgress = 0;
     private TextView textAiFeedback;
+
+    // HabitUpdateActivity에서 수정 완료(RESULT_OK) 시 이 액티비티도 RESULT_OK를 세팅하여
+    // 최종적으로 MainActivity가 onResume() 시 목록을 새로고침하도록 체인을 이어줍니다.
+    private final ActivityResultLauncher<Intent> updateLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                    (ActivityResult result) -> {
+                        if (result.getResultCode() == RESULT_OK) {
+                            // 수정이 완료되었으므로 이 화면도 갱신 필요 신호를 상위로 전파
+                            setResult(RESULT_OK);
+                            finish();
+                        }
+                    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,10 +131,12 @@ public class HabitDetailActivity extends AppCompatActivity {
         ImageButton btnClose = findViewById(R.id.btn_close);
         btnUpdate = findViewById(R.id.btn_update);
         btnPlay = findViewById(R.id.btn_play);
+        textDelete = findViewById(R.id.text_delete);
 
         btnClose.setOnClickListener(onClickListener);
         btnUpdate.setOnClickListener(onClickListener);
         btnPlay.setOnClickListener(onClickListener);
+        textDelete.setOnClickListener(onClickListener);
 
         textAiFeedback = findViewById(R.id.text_ai_feedback);
 
@@ -264,7 +283,7 @@ public class HabitDetailActivity extends AppCompatActivity {
         dataSet.setLineWidth(2f);                            // 선 두께
         dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);      // 부드러운 곡선 효과
         dataSet.setDrawValues(true);                         // 점 위의 값 텍스트 활성화
-        dataSet.setValueTextSize(10f);                       // 값 텍스트 크기 (spToPx 제거하여 크기 정상화)
+        dataSet.setValueTextSize(10f);                       // 값 텍스트 크기
         dataSet.setValueTextColor(Color.parseColor("#70C18E")); // 텍스트 컬러 통일
 
         // 값 포맷터 설정 (예: 40.0 -> 40%)
@@ -314,7 +333,7 @@ public class HabitDetailActivity extends AppCompatActivity {
         leftAxis.setAxisMaximum(100f);                       // 최대 100%
         leftAxis.setLabelCount(5, true);
 
-        // 우측 Y축 비활성화 (보통 양쪽에 있으면 지저분하므로 한쪽에만 표시)
+        // 우측 Y축 비활성화
         YAxis rightAxis = lineChart.getAxisRight();
         rightAxis.setEnabled(false);
 
@@ -335,39 +354,56 @@ public class HabitDetailActivity extends AppCompatActivity {
     View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            if(v.getId() == R.id.btn_update) {
-                // 1. 택배 상자(Intent) 만들기
+            if (v.getId() == R.id.btn_update) {
+                // 실제 멤버 변수 데이터를 Intent에 담아 수정 화면으로 이동
+                // ActivityResultLauncher를 사용하여 수정 완료 결과를 수신합니다.
                 Intent intent = new Intent(HabitDetailActivity.this, HabitUpdateActivity.class);
-
-                // 2. 상자에 정보 담기 (key - value)
-                intent.putExtra("habit_title", "매일 20분 걷기");
-                intent.putExtra("start_date", "2026.05.01");
-                intent.putExtra("end_date", "2026.05.31");
-                intent.putExtra("duration", 20);
-                intent.putExtra("alarm_on", true);
-
-                // 요일 데이터 (모두 선택 상태로 보냄)
-                intent.putExtra("mon", true);
-                intent.putExtra("tue", true);
-                intent.putExtra("wed", true);
-                intent.putExtra("thu", true);
-                intent.putExtra("fri", true);
-                intent.putExtra("sat", true);
-                intent.putExtra("sun", true);
-
-                // 3. 출발!
-                startActivity(intent);
-
-            } else if(v.getId() == R.id.btn_play) {
-                Intent intent = new Intent(HabitDetailActivity.this, HabitPlayActivity.class);
                 intent.putExtra("habit_id", habitId);
                 intent.putExtra("habit_title", habitTitle);
-                intent.putExtra("target_minutes", habitDuration);
-                intent.putExtra("today_progress", todayProgress);
-                startActivity(intent);
-            } else if(v.getId() == R.id.btn_close) {
+                intent.putExtra("start_date", habitStartDate != null ? habitStartDate.replace("-", ".") : "");
+                intent.putExtra("end_date", habitEndDate != null ? habitEndDate.replace("-", ".") : "");
+                intent.putExtra("duration", habitDuration);
+                intent.putExtra("alarm_on", isAlertOn);
+                updateLauncher.launch(intent);
+
+            } else if (v.getId() == R.id.text_delete) {
+                // 삭제 전 확인 다이얼로그 표시
+                new AlertDialog.Builder(HabitDetailActivity.this)
+                        .setTitle("습관 삭제")
+                        .setMessage("'" + habitTitle + "' 습관을 삭제하시겠습니까?\n삭제된 기록은 복구할 수 없습니다.")
+                        .setPositiveButton("삭제", (dialog, which) -> deleteHabit())
+                        .setNegativeButton("취소", null)
+                        .show();
+
+            } else if (v.getId() == R.id.btn_play) {
+                Toast.makeText(HabitDetailActivity.this, "해당 기능은 준비중입니다.", Toast.LENGTH_SHORT).show();
+            } else if (v.getId() == R.id.btn_close) {
                 finish();
             }
         }
     };
+
+    /** 서버에 DELETE 요청을 보내고, 성공 시 RESULT_OK를 세팅하여 MainActivity가 새로고침하도록 합니다. */
+    private void deleteHabit() {
+        if (habitId == -1L) return;
+
+        ApiClient.getApiService().deleteHabit(habitId).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(HabitDetailActivity.this, "습관이 삭제되었습니다.", Toast.LENGTH_SHORT).show();
+                    // MainActivity에게 목록 새로고침이 필요하다는 신호 전달
+                    setResult(RESULT_OK);
+                    finish();
+                } else {
+                    Toast.makeText(HabitDetailActivity.this, "삭제에 실패했습니다. (서버 오류)", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                Toast.makeText(HabitDetailActivity.this, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }

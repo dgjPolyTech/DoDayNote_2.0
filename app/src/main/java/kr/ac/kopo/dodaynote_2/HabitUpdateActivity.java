@@ -22,6 +22,12 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
+import kr.ac.kopo.dodaynote_2.domain.Habit;
+import kr.ac.kopo.dodaynote_2.network.ApiClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class HabitUpdateActivity extends AppCompatActivity {
 
     private EditText editHabitTitle;
@@ -34,8 +40,10 @@ public class HabitUpdateActivity extends AppCompatActivity {
     private ImageButton btn_back;
     private Button btn_done;
 
+    private Long habitId;
     private Calendar startCalendar, endCalendar;
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd", Locale.getDefault());
+    private SimpleDateFormat apiSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +87,7 @@ public class HabitUpdateActivity extends AppCompatActivity {
         endCalendar = Calendar.getInstance();
 
         // DETAIL에서 보낸 값들 받기
+        habitId = getIntent().getLongExtra("habit_id", -1L);
         String title = getIntent().getStringExtra("habit_title");
         String startDateStr = getIntent().getStringExtra("start_date");
         String endDateStr = getIntent().getStringExtra("end_date");
@@ -136,8 +145,33 @@ public class HabitUpdateActivity extends AppCompatActivity {
                 return;
             }
 
-            Toast.makeText(this, "습관 정보가 성공적으로 수정되었습니다!", Toast.LENGTH_SHORT).show();
-            finish();
+            // 서버로 보낼 Habit 객체 구성
+            Habit habit = new Habit();
+            habit.setTitle(title);
+            habit.setStartDate(apiSdf.format(startCalendar.getTime()));
+            habit.setEndDate(apiSdf.format(endCalendar.getTime()));
+            habit.setAlertOn(switchAlarm.isChecked());
+            habit.setTargetMinutes(pickerDuration.getValue());
+
+            // PUT API 호출로 서버에 수정 내용 저장
+            ApiClient.getApiService().updateHabit(habitId, habit).enqueue(new Callback<Habit>() {
+                @Override
+                public void onResponse(Call<Habit> call, Response<Habit> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(HabitUpdateActivity.this, "습관 정보가 성공적으로 수정되었습니다!", Toast.LENGTH_SHORT).show();
+                        // RESULT_OK를 세팅해야 HabitDetailActivity의 updateLauncher가 감지합니다.
+                        setResult(RESULT_OK);
+                        finish();
+                    } else {
+                        Toast.makeText(HabitUpdateActivity.this, "수정에 실패했습니다. (서버 오류)", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Habit> call, Throwable t) {
+                    Toast.makeText(HabitUpdateActivity.this, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
+                }
+            });
         });
     }
 

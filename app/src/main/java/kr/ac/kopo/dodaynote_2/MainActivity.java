@@ -8,6 +8,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -44,6 +47,15 @@ public class MainActivity extends AppCompatActivity {
     // 리사이클러뷰 관련 변수
     RecyclerView recyclerHabits;
     HabitAdapter habitAdapter;
+
+    // 상세 화면에서 수정/삭제 완료 시 RESULT_OK를 받아 목록을 새로고침합니다.
+    private final ActivityResultLauncher<Intent> detailLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                    (ActivityResult result) -> {
+                        if (result.getResultCode() == RESULT_OK) {
+                            loadHabitsFromServer();
+                        }
+                    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +98,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 intent.putExtra("today_progress", todayProgress);
-                startActivity(intent);
+                // 수정/삭제 RESULT_OK 감지를 위해 detailLauncher로 실행
+                detailLauncher.launch(intent);
             }
 
             @Override
