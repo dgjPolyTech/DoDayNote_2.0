@@ -189,11 +189,9 @@ public class HabitDetailActivity extends AppCompatActivity {
             return;
         }
 
-        // 서버 날짜 형식이 yyyy-MM-dd일 수도, yyyy.MM.dd일 수도 있으므로 유연하게 처리
         String datePattern = habitStartDate.contains("-") ? "yyyy-MM-dd" : "yyyy.MM.dd";
         SimpleDateFormat sdf = new SimpleDateFormat(datePattern, Locale.getDefault());
-        TreeMap<Integer, Integer> weeklyDoneCount = new TreeMap<>();
-        
+
         try {
             Date startDate = sdf.parse(habitStartDate);
             if (startDate == null) {
@@ -201,43 +199,68 @@ public class HabitDetailActivity extends AppCompatActivity {
                 return;
             }
 
-            // 각 기록을 주차별로 분류
+            // 종료일 파싱 — 실제 주차별 날짜 수(분모) 계산에 사용
+            Date endDate = null;
+            if (habitEndDate != null && !habitEndDate.isEmpty()) {
+                String endPattern = habitEndDate.contains("-") ? "yyyy-MM-dd" : "yyyy.MM.dd";
+                endDate = new SimpleDateFormat(endPattern, Locale.getDefault()).parse(habitEndDate);
+            }
+            // endDate가 없거나 미래면 오늘로 제한
+            Date today = new Date();
+            Date effectiveEnd = (endDate != null && endDate.before(today)) ? endDate : today;
+
+            // 습관 전체 기간 일수 (startDate ~ effectiveEnd)
+            long totalDays = (effectiveEnd.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000) + 1;
+            // 마지막 주차 인덱스 (0-based)
+            int lastWeekIndex = (int) ((totalDays - 1) / 7);
+
+            // 주차별 달성(done=true) 카운트
+            TreeMap<Integer, Integer> weeklyDoneCount = new TreeMap<>();
+
             for (HabitRecord record : records) {
                 if (!record.isDone() || record.getRecordDate() == null) continue;
 
-                // recordDate가 "2023-10-01T10:00:00" 형태일 수 있으므로 날짜 부분만 자름
-                String recordDateStr = record.getRecordDate().length() >= 10 
-                        ? record.getRecordDate().substring(0, 10).replace(".", "-") 
+                String recordDateStr = record.getRecordDate().length() >= 10
+                        ? record.getRecordDate().substring(0, 10).replace(".", "-")
                         : record.getRecordDate().replace(".", "-");
-                
-                // 비교를 위해 패턴 통일
+
                 SimpleDateFormat recordSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
                 Date rDate = recordSdf.parse(recordDateStr);
-                
                 if (rDate == null) continue;
 
                 long diff = rDate.getTime() - startDate.getTime();
-                if (diff < 0) continue; 
+                if (diff < 0) continue;
 
                 int days = (int) (diff / (24 * 60 * 60 * 1000));
                 int weekIndex = days / 7;
 
-                Integer currentCount = weeklyDoneCount.get(weekIndex);
-                weeklyDoneCount.put(weekIndex, (currentCount == null ? 0 : currentCount) + 1);
+                Integer current = weeklyDoneCount.get(weekIndex);
+                weeklyDoneCount.put(weekIndex, (current == null ? 0 : current) + 1);
             }
 
             List<Entry> entries = new ArrayList<>();
             List<String> labels = new ArrayList<>();
 
-            int maxWeek = 3; // 최소 4주차(0,1,2,3)
-            if (!weeklyDoneCount.isEmpty() && weeklyDoneCount.lastKey() > maxWeek) {
-                maxWeek = weeklyDoneCount.lastKey();
-            }
-            
+            int maxWeek = Math.max(3, lastWeekIndex);
+
             for (int i = 0; i <= maxWeek; i++) {
                 Integer doneDays = weeklyDoneCount.get(i);
-                int count = (doneDays == null) ? 0 : doneDays;
-                float achievementRate = (count / 7f) * 100f;
+                int success = (doneDays == null) ? 0 : doneDays;
+
+                // ─── 핵심 수정: 분모를 7 고정이 아닌 실제 주차 내 날짜 수로 계산 ───────
+                // 마지막 주차는 7일 미만일 수 있음 (예: 습관이 수요일에 끝나면 3일)
+                int daysInThisWeek;
+                if (i < lastWeekIndex) {
+                    daysInThisWeek = 7;                       // 중간 주차: 항상 7일
+                } else {
+                    // 마지막 주차: 나머지 일수 (1 ~ 7)
+                    daysInThisWeek = (int) (totalDays - (long) i * 7);
+                    daysInThisWeek = Math.min(daysInThisWeek, 7);
+                }
+                // ────────────────────────────────────────────────────────────────────────
+
+                float achievementRate = (daysInThisWeek > 0)
+                        ? ((float) success / daysInThisWeek) * 100f : 0f;
                 entries.add(new Entry((float) i, achievementRate));
                 labels.add((i + 1) + "주차");
             }

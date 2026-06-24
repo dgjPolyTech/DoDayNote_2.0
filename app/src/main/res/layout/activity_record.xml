@@ -21,7 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/inter"
-            android:text="ddd 님의 리포트"
+            android:text="나의 리포트"
             android:textColor="#F7F9F2"
             android:textSize="26sp"
             android:textStyle="bold"
@@ -87,12 +87,11 @@
                     android:layout_height="wrap_content"
                     android:padding="16dp">
 
-                    <ImageView
-                        android:id="@+id/img_habit_chart"
+                    <!-- ImageView 대신 MPAndroidChart BarChart 사용 -->
+                    <com.github.mikephil.charting.charts.BarChart
+                        android:id="@+id/bar_chart_habits"
                         android:layout_width="match_parent"
-                        android:layout_height="300dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/chart" />
+                        android:layout_height="260dp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -127,29 +126,33 @@
                     android:orientation="vertical"
                     android:padding="24dp">
 
+                    <!-- 동적으로 채워지는 요약 통계 텍스트 뷰에 ID 부여 -->
                     <TextView
+                        android:id="@+id/text_best_year"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/inter"
-                        android:text="✨ 가장 평균 달성률이 높았던 해는 2025년"
+                        android:text="✨ 데이터를 불러오는 중..."
                         android:textSize="15sp"
                         android:textColor="#334455"
                         android:layout_marginBottom="12dp"/>
 
                     <TextView
+                        android:id="@+id/text_best_habit"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/inter"
-                        android:text="📉 가장 높은 성장세를 보인 기간은 3월"
+                        android:text=""
                         android:textSize="15sp"
                         android:textColor="#334455"
                         android:layout_marginBottom="12dp"/>
 
                     <TextView
+                        android:id="@+id/text_total_rate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/inter"
-                        android:text="💡 최다 실천 습관: 매일 물 2L 마시기"
+                        android:text=""
                         android:textSize="15sp"
                         android:textColor="@color/main_green"
                         android:textStyle="bold" />
@@ -173,12 +176,25 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="6dp" />
 
+            <!-- AI 로딩 중 표시용 ProgressBar -->
+            <ProgressBar
+                android:id="@+id/progress_loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone"
+                android:indeterminateTint="#F7F9F2" />
+
+            <!-- AI 코멘트 카드 — 응답 전까지 GONE, 응답 후 VISIBLE -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/card_ai_comment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="8dp"
-                app:cardUseCompatPadding="true">
+                app:cardUseCompatPadding="true"
+                android:visibility="gone">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -187,10 +203,11 @@
                     android:padding="24dp">
 
                     <TextView
+                        android:id="@+id/text_ai_comment"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/inter"
-                        android:text="전체적으로 꾸준히 성장하는 모습을 보이고 있어요! 특히 이번 달에는 등록하신 습관들의 달성률이 지난달 대비 15% 상승했습니다. 지금의 흐름을 유지한다면 연말에는 모든 목표를 완벽하게 내 것으로 만들 수 있을 거예요."
+                        android:text=""
                         android:textSize="15sp"
                         android:textColor="#555555"
                         android:lineSpacingExtra="8dp"/>

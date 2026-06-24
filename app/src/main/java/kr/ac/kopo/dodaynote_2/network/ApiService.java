@@ -6,6 +6,7 @@ import java.util.Map;
 import kr.ac.kopo.dodaynote_2.domain.AiFeedbackResponse;
 import kr.ac.kopo.dodaynote_2.domain.Habit;
 import kr.ac.kopo.dodaynote_2.domain.HabitRecord;
+import kr.ac.kopo.dodaynote_2.domain.YearlyStatDto;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -14,6 +15,7 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ApiService {
     @POST("/api/habits")
@@ -36,6 +38,14 @@ public interface ApiService {
 
     @GET("api/ai/feedback/{habitId}")
     Call<AiFeedbackResponse> getAiFeedback(@Path("habitId") Long habitId);
+
+    // 전체 습관 기반 AI 종합 코멘트
+    @GET("api/ai/feedback/all")
+    Call<AiFeedbackResponse> getOverallAiFeedback();
+
+    // 연도별/월별 통계 (year=null → 전체 연도별, year=2026 → 해당 연도 월별)
+    @GET("api/habits/stats")
+    Call<List<YearlyStatDto>> getHabitStats(@Query("year") Integer year);
 
     @PUT("/api/habits/{id}")
     Call<Habit> updateHabit(@Path("id") Long id, @Body Habit habit);
