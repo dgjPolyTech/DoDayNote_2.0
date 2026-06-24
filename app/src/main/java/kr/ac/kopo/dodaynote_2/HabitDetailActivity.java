@@ -14,6 +14,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.widget.Toast;
+
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -24,8 +26,21 @@ import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import android.graphics.drawable.GradientDrawable;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TreeMap;
+
+import kr.ac.kopo.dodaynote_2.domain.HabitRecord;
+import kr.ac.kopo.dodaynote_2.network.ApiClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import androidx.annotation.NonNull;
 
 public class HabitDetailActivity extends AppCompatActivity {
 
@@ -34,6 +49,9 @@ public class HabitDetailActivity extends AppCompatActivity {
 
     private Long habitId;
     private String habitTitle = "";
+    private String habitStartDate = "";
+    private String habitEndDate = "";
+    private boolean isAlertOn = false;
     private int habitDuration = 20;
     private int todayProgress = 0;
 
@@ -46,33 +64,46 @@ public class HabitDetailActivity extends AppCompatActivity {
         habitId = getIntent().getLongExtra("habit_id", -1L);
         habitTitle = getIntent().getStringExtra("habit_title");
         if (habitTitle == null) {
-            habitTitle = "매일 20분 걷기";
+            habitTitle = "습관 정보";
         }
         habitDuration = getIntent().getIntExtra("target_minutes", 20);
         todayProgress = getIntent().getIntExtra("today_progress", 0);
+        habitStartDate = getIntent().getStringExtra("start_date");
+        habitEndDate = getIntent().getStringExtra("end_date");
+        isAlertOn = getIntent().getBooleanExtra("is_alert_on", false);
 
         TextView textHabitTitle = findViewById(R.id.text_habit_title);
         textHabitTitle.setText(habitTitle);
 
+        TextView textHabitDate = findViewById(R.id.text_habit_date);
+        if (habitStartDate != null && habitEndDate != null) {
+            textHabitDate.setText(habitStartDate.replace("-", ".") + " ~ " + habitEndDate.replace("-", "."));
+        }
+
         // --- 특정 단어 포인트 컬러 로직 추가 시작 ---
         TextView textHabitCycle = findViewById(R.id.text_habit_cycle);
-        String fullText = "매일 20분 씩 반복(알림 설정 ON)";
+        String alertText = isAlertOn ? "ON" : "OFF";
+        String fullText = String.format("매일 %d분 씩 반복(알림 설정 %s)", habitDuration, alertText);
         SpannableStringBuilder ssb = new SpannableStringBuilder(fullText);
         int pointColor = Color.parseColor("#70C18E"); // 포인트 초록색
 
-        // 1. "매일" 강조 (0~2번 인덱스)
+        // 1. "매일" 강조
         ssb.setSpan(new ForegroundColorSpan(pointColor), 0, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         ssb.setSpan(new StyleSpan(Typeface.BOLD), 0, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-        // 2. "20" 강조 (3~5번 인덱스)
-        ssb.setSpan(new ForegroundColorSpan(pointColor), 3, 5, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        ssb.setSpan(new StyleSpan(Typeface.BOLD), 3, 5, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        // 2. 시간 강조 (숫자 부분 찾기)
+        String durationStr = String.valueOf(habitDuration);
+        int startDuration = fullText.indexOf(durationStr);
+        if (startDuration != -1) {
+            ssb.setSpan(new ForegroundColorSpan(pointColor), startDuration, startDuration + durationStr.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            ssb.setSpan(new StyleSpan(Typeface.BOLD), startDuration, startDuration + durationStr.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
 
-        // 3. "ON" 강조 (단어 위치를 찾아서 적용)
-        int startOn = fullText.indexOf("ON");
+        // 3. "ON/OFF" 강조
+        int startOn = fullText.indexOf(alertText);
         if (startOn != -1) {
-            ssb.setSpan(new ForegroundColorSpan(pointColor), startOn, startOn + 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            ssb.setSpan(new StyleSpan(Typeface.BOLD), startOn, startOn + 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            ssb.setSpan(new ForegroundColorSpan(pointColor), startOn, startOn + alertText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            ssb.setSpan(new StyleSpan(Typeface.BOLD), startOn, startOn + alertText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
 
         textHabitCycle.setText(ssb);
@@ -86,26 +117,117 @@ public class HabitDetailActivity extends AppCompatActivity {
         btnUpdate.setOnClickListener(onClickListener);
         btnPlay.setOnClickListener(onClickListener);
 
-        // 테스트 차트 초기화 및 데이터 로드
-        setupHabitChart();
+        // 서버에서 기록 데이터 로드
+        loadHabitRecordsFromServer();
+    }
+
+    private void loadHabitRecordsFromServer() {
+        if (habitId == -1L) return;
+
+        ApiClient.getApiService().getHabitRecords(habitId).enqueue(new Callback<List<HabitRecord>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<HabitRecord>> call, @NonNull Response<List<HabitRecord>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    processRecordsAndDrawChart(response.body());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<HabitRecord>> call, @NonNull Throwable t) {
+                Toast.makeText(HabitDetailActivity.this, "기록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void processRecordsAndDrawChart(List<HabitRecord> records) {
+        if (habitStartDate == null || habitStartDate.isEmpty()) {
+            setupHabitChart(null, null);
+            return;
+        }
+
+        // 서버 날짜 형식이 yyyy-MM-dd일 수도, yyyy.MM.dd일 수도 있으므로 유연하게 처리
+        String datePattern = habitStartDate.contains("-") ? "yyyy-MM-dd" : "yyyy.MM.dd";
+        SimpleDateFormat sdf = new SimpleDateFormat(datePattern, Locale.getDefault());
+        TreeMap<Integer, Integer> weeklyDoneCount = new TreeMap<>();
+        
+        try {
+            Date startDate = sdf.parse(habitStartDate);
+            if (startDate == null) {
+                setupHabitChart(null, null);
+                return;
+            }
+
+            // 각 기록을 주차별로 분류
+            for (HabitRecord record : records) {
+                if (!record.isDone() || record.getRecordDate() == null) continue;
+
+                // recordDate가 "2023-10-01T10:00:00" 형태일 수 있으므로 날짜 부분만 자름
+                String recordDateStr = record.getRecordDate().length() >= 10 
+                        ? record.getRecordDate().substring(0, 10).replace(".", "-") 
+                        : record.getRecordDate().replace(".", "-");
+                
+                // 비교를 위해 패턴 통일
+                SimpleDateFormat recordSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                Date rDate = recordSdf.parse(recordDateStr);
+                
+                if (rDate == null) continue;
+
+                long diff = rDate.getTime() - startDate.getTime();
+                if (diff < 0) continue; 
+
+                int days = (int) (diff / (24 * 60 * 60 * 1000));
+                int weekIndex = days / 7;
+
+                Integer currentCount = weeklyDoneCount.get(weekIndex);
+                weeklyDoneCount.put(weekIndex, (currentCount == null ? 0 : currentCount) + 1);
+            }
+
+            List<Entry> entries = new ArrayList<>();
+            List<String> labels = new ArrayList<>();
+
+            int maxWeek = 3; // 최소 4주차(0,1,2,3)
+            if (!weeklyDoneCount.isEmpty() && weeklyDoneCount.lastKey() > maxWeek) {
+                maxWeek = weeklyDoneCount.lastKey();
+            }
+            
+            for (int i = 0; i <= maxWeek; i++) {
+                Integer doneDays = weeklyDoneCount.get(i);
+                int count = (doneDays == null) ? 0 : doneDays;
+                float achievementRate = (count / 7f) * 100f;
+                entries.add(new Entry((float) i, achievementRate));
+                labels.add((i + 1) + "주차");
+            }
+
+            setupHabitChart(entries, labels);
+
+        } catch (ParseException e) {
+            android.util.Log.e("HabitDetail", "Date parse error: " + e.getMessage());
+            setupHabitChart(null, null);
+        }
     }
 
     /**
      * MPAndroidChart의 LineChart를 활용하여 커스텀 꺾은선 차트를 그리는 메서드입니다.
      */
-    private void setupHabitChart() {
+    private void setupHabitChart(List<Entry> dynamicEntries, List<String> dynamicLabels) {
         LineChart lineChart = findViewById(R.id.habit_line_chart);
         if (lineChart == null) return;
 
-        // 1. 샘플 데이터 설정 (X: 주차, Y: 달성률)
-        List<Entry> entries = new ArrayList<>();
-        entries.add(new Entry(0f, 40f)); // 1주차
-        entries.add(new Entry(1f, 60f)); // 2주차
-        entries.add(new Entry(2f, 92f)); // 3주차 (가장 높음)
-        entries.add(new Entry(3f, 75f)); // 4주차
+        List<Entry> entries;
+        final String[] labels;
 
-        // X축에 들어갈 레이블 정의
-        final String[] quarters = new String[]{"1주차", "2주차", "3주차", "4주차"};
+        if (dynamicEntries != null && !dynamicEntries.isEmpty()) {
+            entries = dynamicEntries;
+            labels = dynamicLabels.toArray(new String[0]);
+        } else {
+            // 데이터가 없을 경우 샘플 데이터
+            entries = new ArrayList<>();
+            entries.add(new Entry(0f, 0f));
+            entries.add(new Entry(1f, 0f));
+            entries.add(new Entry(2f, 0f));
+            entries.add(new Entry(3f, 0f));
+            labels = new String[]{"1주차", "2주차", "3주차", "4주차"};
+        }
 
         // 2. 데이터 세트 구성 및 스타일링
         LineDataSet dataSet = new LineDataSet(entries, "달성률 (%)");
@@ -149,11 +271,11 @@ public class HabitDetailActivity extends AppCompatActivity {
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);       // 아래쪽에 위치
         xAxis.setDrawGridLines(false);                       // 수직 격자선 제거
         xAxis.setDrawAxisLine(false);                        // 축 기준선 제거
-        xAxis.setValueFormatter(new IndexAxisValueFormatter(quarters)); // 레이블 등록
+        xAxis.setValueFormatter(new IndexAxisValueFormatter(labels)); // 레이블 등록
         xAxis.setTextColor(Color.parseColor("#AAAAAA"));
         xAxis.setTextSize(10f);
         xAxis.setGranularity(1f);                            // 레이블 간격 1로 고정
-        xAxis.setLabelCount(4);
+        xAxis.setLabelCount(labels.length);
 
         // 5. Y축(세로축) 설정
         YAxis leftAxis = lineChart.getAxisLeft();
