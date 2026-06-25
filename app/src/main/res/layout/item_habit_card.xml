@@ -40,6 +40,31 @@
                 android:fontFamily="@font/inter" />
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/text_not_today"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:text="오늘 실천일이 아닙니다."
+            android:textColor="#999999"
+            android:textSize="12sp"
+            android:fontFamily="@font/inter"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/text_d_day"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@id/check_habit_done"
+            android:layout_marginRight="16dp"
+            android:layout_centerVertical="true"
+            android:text="D-1"
+            android:textColor="#70C18E"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/inter" />
+
         <View
             android:id="@+id/check_habit_done"
             android:layout_width="40dp"

@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     FloatingActionButton btn_habit_create;
     Button btn_habit_list;
     TextView text_total_habits;
+    TextView text_today_remaining_habits;
 
     // 리사이클러뷰 관련 변수
     RecyclerView recyclerHabits;
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         btn_habit_create = findViewById(R.id.btn_habit_create);
         btn_habit_list = findViewById(R.id.btn_habit_list);
         text_total_habits = findViewById(R.id.text_total_habits);
+        text_today_remaining_habits = findViewById(R.id.text_today_remaining_habits);
 
         // 리사이클러뷰 설정
         recyclerHabits = findViewById(R.id.recycler_habits);
@@ -197,11 +199,71 @@ public class MainActivity extends AppCompatActivity {
                     List<Habit> habitList = response.body();
                     Log.d("SERVER_DB_LOAD", "데이터 불러오기 성공! 개수: " + habitList.size());
                     
+                    // Filter removed: Show all habits.
+                    int dayOfWeek = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK);
+                    final int todayIndex = (dayOfWeek + 5) % 7;
+
+                    // Sort:
+                    // 1. 오늘 해야 할 습관 (아직 안함)
+                    // 2. 오늘 해야 할 습관 (실천함)
+                    // 3. 오늘 말고 다른 날 해야 할 습관
+                    // 같은 그룹 내에서는 시작일(startDate) 기준 오름차순
+                    java.util.Collections.sort(habitList, new java.util.Comparator<Habit>() {
+                        private int getPriority(Habit h) {
+                            boolean isTodayActive = true;
+                            String activeDays = h.getActiveDays();
+                            if (activeDays != null && activeDays.length() >= 7 && !activeDays.equals("0000000") && !activeDays.equals("1111111")) {
+                                isTodayActive = (activeDays.charAt(todayIndex) == '1');
+                            }
+                            
+                            boolean isDone = false;
+                            if (h.getRecords() != null && !h.getRecords().isEmpty()) {
+                                isDone = h.getRecords().get(h.getRecords().size() - 1).isDone();
+                            }
+                            
+                            if (isTodayActive) {
+                                return isDone ? 2 : 1;
+                            } else {
+                                return 3;
+                            }
+                        }
+
+                        @Override
+                        public int compare(Habit h1, Habit h2) {
+                            int p1 = getPriority(h1);
+                            int p2 = getPriority(h2);
+                            if (p1 != p2) {
+                                return Integer.compare(p1, p2);
+                            }
+                            
+                            String date1 = h1.getStartDate() != null ? h1.getStartDate() : "";
+                            String date2 = h2.getStartDate() != null ? h2.getStartDate() : "";
+                            return date1.compareTo(date2);
+                        }
+                    });
+                    
                     // 어댑터에 데이터 전달
                     habitAdapter.setHabits(habitList);
                     
+                    int remainingToday = 0;
+                    for (Habit h : habitList) {
+                        boolean isTodayActive = true;
+                        String activeDays = h.getActiveDays();
+                        if (activeDays != null && activeDays.length() >= 7 && !activeDays.equals("0000000") && !activeDays.equals("1111111")) {
+                            isTodayActive = (activeDays.charAt(todayIndex) == '1');
+                        }
+                        if (isTodayActive) {
+                            boolean isDone = false;
+                            if (h.getRecords() != null && !h.getRecords().isEmpty()) {
+                                isDone = h.getRecords().get(h.getRecords().size() - 1).isDone();
+                            }
+                            if (!isDone) remainingToday++;
+                        }
+                    }
+
                     // 전체 습관 수 텍스트 업데이트
                     text_total_habits.setText("전체 습관 수: " + habitList.size() + "개");
+                    text_today_remaining_habits.setText("오늘 해야할 습관 남은 수: " + remainingToday + "개");
                 }
             }
 

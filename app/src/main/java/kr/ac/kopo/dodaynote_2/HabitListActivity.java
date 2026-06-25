@@ -66,6 +66,14 @@ public class HabitListActivity extends AppCompatActivity {
             public void onResponse(Call<List<Habit>> call, Response<List<Habit>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Habit> completedHabits = response.body();
+                    java.util.Collections.sort(completedHabits, new java.util.Comparator<Habit>() {
+                        @Override
+                        public int compare(Habit h1, Habit h2) {
+                            String date1 = h1.getStartDate() != null ? h1.getStartDate() : "";
+                            String date2 = h2.getStartDate() != null ? h2.getStartDate() : "";
+                            return date1.compareTo(date2);
+                        }
+                    });
                     adapter.setItems(completedHabits);
                     textTotalHabits.setText("전체 습관 수: " + completedHabits.size() + "개");
                 } else {
