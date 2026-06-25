@@ -53,7 +53,7 @@ public interface ApiService {
 
     // 전체 습관 기반 AI 종합 코멘트
     @GET("api/ai/feedback/all")
-    Call<AiFeedbackResponse> getOverallAiFeedback();
+    Call<AiFeedbackResponse> getOverallAiFeedback(@Query("userEmail") String userEmail);
 
     // 연도별/월별 통계 (year=null → 전체 연도별, year=2026 → 해당 연도 월별)
     @GET("api/habits/stats")

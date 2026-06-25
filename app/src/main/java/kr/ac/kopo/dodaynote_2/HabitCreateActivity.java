@@ -10,7 +10,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.NumberPicker;
-import android.widget.Switch;
+import androidx.appcompat.widget.SwitchCompat;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,7 +38,7 @@ public class HabitCreateActivity extends AppCompatActivity {
     private TextView textStartDate, textEndDate;
     private NumberPicker pickerDuration;
     private CheckBox checkMon, checkTue, checkWed, checkThu, checkFri, checkSat, checkSun;
-    private Switch switchAlarm;
+    private SwitchCompat switchAlarm;
     private TextView textResult;
     private ImageButton btn_close;
     private Button btn_done;
@@ -70,6 +70,13 @@ public class HabitCreateActivity extends AppCompatActivity {
             String title = editHabitTitle.getText().toString().trim();
             if (title.isEmpty()) {
                 Toast.makeText(this, "습관 이름을 입력해주세요.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            long diff = endCalendar.getTimeInMillis() - startCalendar.getTimeInMillis();
+            int durationDays = (int) (diff / (24 * 60 * 60 * 1000)) + 1;
+            if (durationDays < 1) {
+                Toast.makeText(this, "종료일은 시작일보다 빠를 수 없습니다.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -142,7 +149,18 @@ public class HabitCreateActivity extends AppCompatActivity {
         DatePickerDialog dialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
             if (isStartDate) {
                 startCalendar.set(year, month, dayOfMonth);
+                // 시작일이 종료일보다 늦어지면 종료일을 시작일과 동일하게 맞춤
+                if (startCalendar.after(endCalendar)) {
+                    endCalendar.setTimeInMillis(startCalendar.getTimeInMillis());
+                }
             } else {
+                Calendar tempCal = Calendar.getInstance();
+                tempCal.set(year, month, dayOfMonth);
+                // 종료일이 시작일보다 빠르면 에러 메시지
+                if (tempCal.before(startCalendar)) {
+                    Toast.makeText(this, "종료일은 시작일보다 빠를 수 없습니다.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 endCalendar.set(year, month, dayOfMonth);
             }
             updateDateLabels();

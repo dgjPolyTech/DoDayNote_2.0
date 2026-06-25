@@ -212,13 +212,13 @@
                     android:fontFamily="@font/inter"
                     android:textSize="16sp"
                     android:textColor="#333333"/>
-                <Switch
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/switch_alarm"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
-                    android:thumbTint="#70C18E"
-                    android:trackTint="#D0E9D9" />
+                    app:thumbTint="@color/switch_thumb_selector"
+                    app:trackTint="@color/switch_track_selector" />
             </RelativeLayout>
         </LinearLayout>
     </ScrollView>

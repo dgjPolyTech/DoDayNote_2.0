@@ -10,7 +10,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.NumberPicker;
-import android.widget.Switch;
+import androidx.appcompat.widget.SwitchCompat;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,7 +35,7 @@ public class HabitUpdateActivity extends AppCompatActivity {
     private TextView textStartDate, textEndDate;
     private NumberPicker pickerDuration;
     private CheckBox checkMon, checkTue, checkWed, checkThu, checkFri, checkSat, checkSun;
-    private Switch switchAlarm;
+    private SwitchCompat switchAlarm;
     private TextView textResult;
     private ImageButton btn_back;
     private Button btn_done;
@@ -125,9 +125,7 @@ public class HabitUpdateActivity extends AppCompatActivity {
         // 뒤로가기 버튼
         btn_back.setOnClickListener(v -> finish());
 
-        // 날짜 선택 버튼
-        cardStartDate.setOnClickListener(v -> showDatePicker(true));
-        cardEndDate.setOnClickListener(v -> showDatePicker(false));
+        // 날짜 선택 버튼은 수정 시 비활성화됨 (클릭 이벤트 제거)
 
         // [핵심] 수정 완료 버튼 (유효성 검사 포함)
         btn_done.setOnClickListener(v -> {
@@ -198,19 +196,7 @@ public class HabitUpdateActivity extends AppCompatActivity {
         switchAlarm.setOnCheckedChangeListener(checkListener);
     }
 
-    private void showDatePicker(boolean isStartDate) {
-        Calendar targetCal = isStartDate ? startCalendar : endCalendar;
-        DatePickerDialog dialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
-            if (isStartDate) {
-                startCalendar.set(year, month, dayOfMonth);
-            } else {
-                endCalendar.set(year, month, dayOfMonth);
-            }
-            updateDateLabels();
-            updateSummary();
-        }, targetCal.get(Calendar.YEAR), targetCal.get(Calendar.MONTH), targetCal.get(Calendar.DAY_OF_MONTH));
-        dialog.show();
-    }
+
 
     private void updateDateLabels() {
         textStartDate.setText(sdf.format(startCalendar.getTime()));

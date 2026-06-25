@@ -311,11 +311,14 @@ public class RecordActivity extends AppCompatActivity {
     // onResponse/onFailure는 메인(UI) 스레드에서 실행되므로 UI 조작이 안전함
 
     private void loadAiFeedbackAsync() {
+        android.content.SharedPreferences prefs = getSharedPreferences("DoDayNotePrefs", MODE_PRIVATE);
+        String userEmail = prefs.getString("userEmail", "");
+
         // 로딩 시작: ProgressBar 표시, AI 카드뷰 숨김
         progressLoading.setVisibility(View.VISIBLE);
         cardAiComment.setVisibility(View.GONE);
 
-        apiService.getOverallAiFeedback().enqueue(new Callback<AiFeedbackResponse>() {
+        apiService.getOverallAiFeedback(userEmail).enqueue(new Callback<AiFeedbackResponse>() {
             @Override
             public void onResponse(Call<AiFeedbackResponse> call,
                                    Response<AiFeedbackResponse> response) {
