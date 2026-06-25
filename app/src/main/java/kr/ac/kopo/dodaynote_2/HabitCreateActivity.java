@@ -87,6 +87,16 @@ public class HabitCreateActivity extends AppCompatActivity {
             habit.setAlertOn(switchAlarm.isChecked());
             habit.setTargetMinutes(pickerDuration.getValue());
 
+            StringBuilder activeDaysBuilder = new StringBuilder();
+            activeDaysBuilder.append(checkMon.isChecked() ? "1" : "0");
+            activeDaysBuilder.append(checkTue.isChecked() ? "1" : "0");
+            activeDaysBuilder.append(checkWed.isChecked() ? "1" : "0");
+            activeDaysBuilder.append(checkThu.isChecked() ? "1" : "0");
+            activeDaysBuilder.append(checkFri.isChecked() ? "1" : "0");
+            activeDaysBuilder.append(checkSat.isChecked() ? "1" : "0");
+            activeDaysBuilder.append(checkSun.isChecked() ? "1" : "0");
+            habit.setActiveDays(activeDaysBuilder.toString());
+
             android.content.SharedPreferences prefs = getSharedPreferences("DoDayNotePrefs", MODE_PRIVATE);
             String userEmail = prefs.getString("userEmail", "");
 

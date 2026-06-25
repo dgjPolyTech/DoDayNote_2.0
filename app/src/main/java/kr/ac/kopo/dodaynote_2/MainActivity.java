@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra("start_date", habit.getStartDate());
                 intent.putExtra("end_date", habit.getEndDate());
                 intent.putExtra("is_alert_on", habit.isAlertOn());
+                intent.putExtra("active_days", habit.getActiveDays());
                 
                 // 오늘 날짜 기록 찾기
                 int todayProgress = 0;

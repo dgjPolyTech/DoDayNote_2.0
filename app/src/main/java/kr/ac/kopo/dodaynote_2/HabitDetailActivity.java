@@ -60,6 +60,7 @@ public class HabitDetailActivity extends AppCompatActivity {
     private boolean isAlertOn = false;
     private int habitDuration = 20;
     private int todayProgress = 0;
+    private String habitActiveDays = "";
     private TextView textAiFeedback;
 
     // HabitUpdateActivity에서 수정 완료(RESULT_OK) 시 이 액티비티도 RESULT_OK를 세팅하여
@@ -90,6 +91,10 @@ public class HabitDetailActivity extends AppCompatActivity {
         habitStartDate = getIntent().getStringExtra("start_date");
         habitEndDate = getIntent().getStringExtra("end_date");
         isAlertOn = getIntent().getBooleanExtra("is_alert_on", false);
+        habitActiveDays = getIntent().getStringExtra("active_days");
+        if (habitActiveDays == null) {
+            habitActiveDays = "1111111"; // Default to every day if null
+        }
 
         TextView textHabitTitle = findViewById(R.id.text_habit_title);
         textHabitTitle.setText(habitTitle);
@@ -102,13 +107,33 @@ public class HabitDetailActivity extends AppCompatActivity {
         // --- 특정 단어 포인트 컬러 로직 추가 시작 ---
         TextView textHabitCycle = findViewById(R.id.text_habit_cycle);
         String alertText = isAlertOn ? "ON" : "OFF";
-        String fullText = String.format("매일 %d분 씩 반복(알림 설정 %s)", habitDuration, alertText);
+        
+        String daysStr = "매일";
+        if (habitActiveDays != null && habitActiveDays.length() >= 7) {
+            StringBuilder db = new StringBuilder();
+            if(habitActiveDays.charAt(0) == '1') db.append("월 ");
+            if(habitActiveDays.charAt(1) == '1') db.append("화 ");
+            if(habitActiveDays.charAt(2) == '1') db.append("수 ");
+            if(habitActiveDays.charAt(3) == '1') db.append("목 ");
+            if(habitActiveDays.charAt(4) == '1') db.append("금 ");
+            if(habitActiveDays.charAt(5) == '1') db.append("토 ");
+            if(habitActiveDays.charAt(6) == '1') db.append("일 ");
+            String parsed = db.toString().trim();
+            if (!parsed.isEmpty() && !parsed.equals("월 화 수 목 금 토 일")) {
+                daysStr = parsed;
+            }
+        }
+        
+        String fullText = String.format("%s %d분 씩 반복(알림 설정 %s)", daysStr, habitDuration, alertText);
         SpannableStringBuilder ssb = new SpannableStringBuilder(fullText);
         int pointColor = Color.parseColor("#70C18E"); // 포인트 초록색
 
-        // 1. "매일" 강조
-        ssb.setSpan(new ForegroundColorSpan(pointColor), 0, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        ssb.setSpan(new StyleSpan(Typeface.BOLD), 0, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        // 1. "매일" 또는 요일 강조
+        int startDays = fullText.indexOf(daysStr);
+        if (startDays != -1) {
+            ssb.setSpan(new ForegroundColorSpan(pointColor), startDays, startDays + daysStr.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            ssb.setSpan(new StyleSpan(Typeface.BOLD), startDays, startDays + daysStr.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
 
         // 2. 시간 강조 (숫자 부분 찾기)
         String durationStr = String.valueOf(habitDuration);
@@ -387,6 +412,7 @@ public class HabitDetailActivity extends AppCompatActivity {
                 intent.putExtra("end_date", habitEndDate != null ? habitEndDate.replace("-", ".") : "");
                 intent.putExtra("duration", habitDuration);
                 intent.putExtra("alarm_on", isAlertOn);
+                intent.putExtra("active_days", habitActiveDays);
                 updateLauncher.launch(intent);
 
             } else if (v.getId() == R.id.text_delete) {

@@ -10,6 +10,7 @@ public class Habit {
     private boolean isAlertOn;
     private int targetMinutes;
     private boolean isCompleted;
+    private String activeDays;
     private List<HabitRecord> records;
 
     public Long getId() { return id; }
@@ -26,6 +27,8 @@ public class Habit {
     public void setTargetMinutes(int targetMinutes) { this.targetMinutes = targetMinutes; }
     public boolean isCompleted() { return isCompleted; }
     public void setCompleted(boolean completed) { isCompleted = completed; }
+    public String getActiveDays() { return activeDays; }
+    public void setActiveDays(String activeDays) { this.activeDays = activeDays; }
     public List<HabitRecord> getRecords() { return records; }
     public void setRecords(List<HabitRecord> records) { this.records = records; }
 }

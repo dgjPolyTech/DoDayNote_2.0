@@ -112,13 +112,24 @@ public class HabitUpdateActivity extends AppCompatActivity {
 
         // 스위치 및 체크박스
         switchAlarm.setChecked(getIntent().getBooleanExtra("alarm_on", true));
-        checkMon.setChecked(getIntent().getBooleanExtra("mon", true));
-        checkTue.setChecked(getIntent().getBooleanExtra("tue", true));
-        checkWed.setChecked(getIntent().getBooleanExtra("wed", true));
-        checkThu.setChecked(getIntent().getBooleanExtra("thu", true));
-        checkFri.setChecked(getIntent().getBooleanExtra("fri", true));
-        checkSat.setChecked(getIntent().getBooleanExtra("sat", true));
-        checkSun.setChecked(getIntent().getBooleanExtra("sun", true));
+        String activeDays = getIntent().getStringExtra("active_days");
+        if (activeDays != null && activeDays.length() >= 7) {
+            checkMon.setChecked(activeDays.charAt(0) == '1');
+            checkTue.setChecked(activeDays.charAt(1) == '1');
+            checkWed.setChecked(activeDays.charAt(2) == '1');
+            checkThu.setChecked(activeDays.charAt(3) == '1');
+            checkFri.setChecked(activeDays.charAt(4) == '1');
+            checkSat.setChecked(activeDays.charAt(5) == '1');
+            checkSun.setChecked(activeDays.charAt(6) == '1');
+        } else {
+            checkMon.setChecked(true);
+            checkTue.setChecked(true);
+            checkWed.setChecked(true);
+            checkThu.setChecked(true);
+            checkFri.setChecked(true);
+            checkSat.setChecked(true);
+            checkSun.setChecked(true);
+        }
     }
 
     private void setupClickListeners() {
@@ -150,6 +161,16 @@ public class HabitUpdateActivity extends AppCompatActivity {
             habit.setEndDate(apiSdf.format(endCalendar.getTime()));
             habit.setAlertOn(switchAlarm.isChecked());
             habit.setTargetMinutes(pickerDuration.getValue());
+
+            StringBuilder activeDaysBuilder = new StringBuilder();
+            activeDaysBuilder.append(checkMon.isChecked() ? "1" : "0");
+            activeDaysBuilder.append(checkTue.isChecked() ? "1" : "0");
+            activeDaysBuilder.append(checkWed.isChecked() ? "1" : "0");
+            activeDaysBuilder.append(checkThu.isChecked() ? "1" : "0");
+            activeDaysBuilder.append(checkFri.isChecked() ? "1" : "0");
+            activeDaysBuilder.append(checkSat.isChecked() ? "1" : "0");
+            activeDaysBuilder.append(checkSun.isChecked() ? "1" : "0");
+            habit.setActiveDays(activeDaysBuilder.toString());
 
             // PUT API 호출로 서버에 수정 내용 저장
             ApiClient.getApiService().updateHabit(habitId, habit).enqueue(new Callback<Habit>() {
