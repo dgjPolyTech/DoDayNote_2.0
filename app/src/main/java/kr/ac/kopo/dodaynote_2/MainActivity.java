@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -74,6 +75,12 @@ public class MainActivity extends AppCompatActivity {
         btn_habit_list = findViewById(R.id.btn_habit_list);
         text_total_habits = findViewById(R.id.text_total_habits);
         text_today_remaining_habits = findViewById(R.id.text_today_remaining_habits);
+
+        ImageView imgTokiBanner = findViewById(R.id.img_toki_banner);
+        imgTokiBanner.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/WaltDev29/Oboetoki"));
+            startActivity(intent);
+        });
 
         // 리사이클러뷰 설정
         recyclerHabits = findViewById(R.id.recycler_habits);

@@ -172,7 +172,10 @@ public class RecordActivity extends AppCompatActivity {
         String userEmail = prefs.getString("userEmail", "");
         String userName = prefs.getString("userName", "유저");
 
-        textTotalHabits.setText(userName + "의 리포트");
+        String titleText = userName + "의 리포트";
+        android.text.SpannableStringBuilder titleBuilder = new android.text.SpannableStringBuilder(titleText);
+        titleBuilder.setSpan(new android.text.style.ForegroundColorSpan(0xFF3DAA5C), 0, userName.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        textTotalHabits.setText(titleBuilder);
 
         apiService.getHabitStats(userEmail, year).enqueue(new Callback<List<YearlyStatDto>>() {
             @Override

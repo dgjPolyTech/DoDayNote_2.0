@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <ImageView
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_back"
+        android:padding="12dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="유저 정보 수정"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginBottom="48dp" />
+
+    <EditText
+        android:id="@+id/editNickname"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="새 닉네임"
+        android:inputType="textPersonName"
+        android:background="#F5F5F5"
+        android:padding="12dp"
+        android:layout_marginBottom="24dp" />
+
+    <Button
+        android:id="@+id/btnSaveNickname"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="닉네임 저장"
+        android:textColor="@android:color/white"
+        android:backgroundTint="#70C18E"
+        android:layout_marginBottom="32dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEEEEE"
+        android:layout_marginBottom="32dp" />
+
+    <Button
+        android:id="@+id/btnChangePassword"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="비밀번호 변경"
+        android:textColor="#333333"
+        android:backgroundTint="#E0E0E0"
+        android:layout_marginBottom="48dp" />
+
+    <TextView
+        android:id="@+id/textDeleteAccount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="회원 탈퇴"
+        android:textColor="#FF4D4D"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:padding="8dp" />
+
+    </LinearLayout>
+</FrameLayout>
