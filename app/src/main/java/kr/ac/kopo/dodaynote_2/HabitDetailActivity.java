@@ -47,7 +47,6 @@ import androidx.annotation.NonNull;
 public class HabitDetailActivity extends AppCompatActivity {
 
     Button btnUpdate;
-    Button btnPlay;
     TextView textDelete;
 
     private Long habitId;
@@ -152,12 +151,10 @@ public class HabitDetailActivity extends AppCompatActivity {
 
         ImageButton btnClose = findViewById(R.id.btn_close);
         btnUpdate = findViewById(R.id.btn_update);
-        btnPlay = findViewById(R.id.btn_play);
         textDelete = findViewById(R.id.text_delete);
 
         btnClose.setOnClickListener(onClickListener);
         btnUpdate.setOnClickListener(onClickListener);
-        btnPlay.setOnClickListener(onClickListener);
         textDelete.setOnClickListener(onClickListener);
 
         textAiFeedback = findViewById(R.id.text_ai_feedback);
@@ -363,8 +360,6 @@ public class HabitDetailActivity extends AppCompatActivity {
                         .setNegativeButton("취소", null)
                         .show();
 
-            } else if (v.getId() == R.id.btn_play) {
-                Toast.makeText(HabitDetailActivity.this, "해당 기능은 준비중입니다.", Toast.LENGTH_SHORT).show();
             } else if (v.getId() == R.id.btn_close) {
                 finish();
             }

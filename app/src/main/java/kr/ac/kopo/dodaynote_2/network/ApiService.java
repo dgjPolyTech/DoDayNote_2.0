@@ -27,6 +27,12 @@ public interface ApiService {
     @POST("/api/users/login")
     Call<UserResponseDto> login(@Body UserRequestDto requestDto);
 
+    @PUT("/api/users/{email}")
+    Call<UserResponseDto> updateUser(@Path("email") String email, @Body UserRequestDto requestDto);
+
+    @DELETE("/api/users/{email}")
+    Call<Void> deleteUser(@Path("email") String email);
+
     @POST("/api/habits")
     Call<Habit> createHabit(@Query("userEmail") String userEmail, @Body Habit habit);
 
