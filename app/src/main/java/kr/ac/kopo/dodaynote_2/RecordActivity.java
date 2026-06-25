@@ -42,7 +42,7 @@ public class RecordActivity extends AppCompatActivity {
     private Spinner spinnerYear;
     private BarChart barChart;
     private LineChart lineChart;
-    private TextView textBestYear, textBestHabit, textTotalRate, textAiComment;
+    private TextView textTotalHabits, textBestYear, textBestHabit, textTotalRate, textAiComment;
     private ProgressBar progressLoading;
     private CardView cardAiComment;
 
@@ -91,6 +91,7 @@ public class RecordActivity extends AppCompatActivity {
         spinnerYear = findViewById(R.id.spinner_year_select);
         barChart = findViewById(R.id.bar_chart_habits);
         lineChart = findViewById(R.id.line_chart_habits);
+        textTotalHabits = findViewById(R.id.text_total_habits);
         textBestYear = findViewById(R.id.text_best_year);
         textBestHabit = findViewById(R.id.text_best_habit);
         textTotalRate = findViewById(R.id.text_total_rate);
@@ -169,6 +170,9 @@ public class RecordActivity extends AppCompatActivity {
     private void loadStatsData(Integer year) {
         android.content.SharedPreferences prefs = getSharedPreferences("DoDayNotePrefs", MODE_PRIVATE);
         String userEmail = prefs.getString("userEmail", "");
+        String userName = prefs.getString("userName", "유저");
+
+        textTotalHabits.setText(userName + "의 리포트");
 
         apiService.getHabitStats(userEmail, year).enqueue(new Callback<List<YearlyStatDto>>() {
             @Override
@@ -326,7 +330,7 @@ public class RecordActivity extends AppCompatActivity {
 
     private void updateSummaryForYearly(List<YearlyStatDto> stats) {
         if (stats == null || stats.isEmpty()) {
-            textBestYear.setText("✨ 아직 기록된 데이터가 없습니다.");
+            textBestYear.setText("아직 기록된 데이터가 없습니다.");
             textBestHabit.setText("");
             textTotalRate.setText("");
             return;
@@ -342,27 +346,27 @@ public class RecordActivity extends AppCompatActivity {
         double overallRate = totalRecords > 0
                 ? Math.round(totalSuccess * 100.0 / totalRecords * 10.0) / 10.0 : 0;
 
-        textBestYear.setText("✨ 가장 평균 달성률이 높았던 해는 " + best.getYear() + "년 ("
+        textBestYear.setText("가장 평균 달성률이 높았던 해는 " + best.getYear() + "년 ("
                 + best.getAchievementRate() + "%)");
 
         String bestHabit = best.getBestHabitTitle();
         textBestHabit.setText((bestHabit != null && !bestHabit.isEmpty())
-                ? "🏆 최고 달성 습관: " + bestHabit : "");
+                ? "최장 기간 달성 습관: " + bestHabit : "");
 
-        textTotalRate.setText("💡 전체 달성률: " + overallRate + "%"
+        textTotalRate.setText("전체 달성률: " + overallRate + "%"
                 + " (" + totalSuccess + "/" + totalRecords + "일)");
     }
 
     // ── 요약 텍스트 갱신: 특정 연도 모드 ──────────────────────────────────────
 
     private void updateSummaryForSpecificYear(YearlyStatDto dto, int year) {
-        textBestYear.setText("✨ " + year + "년 전체 달성률: " + dto.getAchievementRate() + "%");
+        textBestYear.setText(year + "년 전체 달성률: " + dto.getAchievementRate() + "%");
 
         String bestHabit = dto.getBestHabitTitle();
         textBestHabit.setText((bestHabit != null && !bestHabit.isEmpty())
-                ? "🏆 최고 달성 습관: " + bestHabit : "");
+                ? "최장 기간 달성 습관: " + bestHabit : "");
 
-        textTotalRate.setText("💡 " + dto.getSuccessCount() + "일 달성 / "
+        textTotalRate.setText(dto.getSuccessCount() + "일 달성 / "
                 + dto.getTotalRecords() + "일 기록");
     }
 
@@ -401,9 +405,32 @@ public class RecordActivity extends AppCompatActivity {
         });
     }
 
-    // AI 피드백 텍스트 설정 + 카드뷰 fadeIn 표시
+    // AI 피드백 텍스트 파싱 및 색상 적용
     private void showAiFeedback(String feedback) {
-        textAiComment.setText(feedback);
+        android.text.SpannableStringBuilder builder = new android.text.SpannableStringBuilder();
+        
+        int positiveIndex = feedback.indexOf("[긍정]");
+        int negativeIndex = feedback.indexOf("[부정]");
+        
+        if (positiveIndex != -1 && negativeIndex != -1) {
+            String beforePos = feedback.substring(0, positiveIndex);
+            String posSection = feedback.substring(positiveIndex, negativeIndex);
+            String negSection = feedback.substring(negativeIndex);
+            
+            builder.append(beforePos);
+            
+            int posStart = builder.length();
+            builder.append(posSection);
+            builder.setSpan(new android.text.style.ForegroundColorSpan(0xFF3DAA5C), posStart, builder.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            
+            int negStart = builder.length();
+            builder.append(negSection);
+            builder.setSpan(new android.text.style.ForegroundColorSpan(0xFFE53935), negStart, builder.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        } else {
+            builder.append(feedback);
+        }
+
+        textAiComment.setText(builder);
         cardAiComment.setAlpha(0f);
         cardAiComment.setVisibility(View.VISIBLE);
         ObjectAnimator.ofFloat(cardAiComment, "alpha", 0f, 1f)

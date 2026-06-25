@@ -57,10 +57,15 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<UserResponseDto> call, Response<UserResponseDto> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // 로그인 성공 시 SharedPreferences에 이메일 저장
+                    // 로그인 성공 시 SharedPreferences에 이메일 및 유저명 저장
                     SharedPreferences prefs = getSharedPreferences("DoDayNotePrefs", MODE_PRIVATE);
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putString("userEmail", email);
+                    if (response.body().getUserName() != null) {
+                        editor.putString("userName", response.body().getUserName());
+                    } else {
+                        editor.putString("userName", email.split("@")[0]); // fallback
+                    }
                     editor.apply();
 
                     Toast.makeText(LoginActivity.this, "환영합니다!", Toast.LENGTH_SHORT).show();
