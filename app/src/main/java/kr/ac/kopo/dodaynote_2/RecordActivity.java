@@ -13,11 +13,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
 import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 
@@ -37,6 +41,7 @@ public class RecordActivity extends AppCompatActivity {
 
     private Spinner spinnerYear;
     private BarChart barChart;
+    private LineChart lineChart;
     private TextView textBestYear, textBestHabit, textTotalRate, textAiComment;
     private ProgressBar progressLoading;
     private CardView cardAiComment;
@@ -85,6 +90,7 @@ public class RecordActivity extends AppCompatActivity {
     private void initViews() {
         spinnerYear = findViewById(R.id.spinner_year_select);
         barChart = findViewById(R.id.bar_chart_habits);
+        lineChart = findViewById(R.id.line_chart_habits);
         textBestYear = findViewById(R.id.text_best_year);
         textBestHabit = findViewById(R.id.text_best_habit);
         textTotalRate = findViewById(R.id.text_total_rate);
@@ -93,6 +99,7 @@ public class RecordActivity extends AppCompatActivity {
         cardAiComment = findViewById(R.id.card_ai_comment);
 
         setupBarChart();
+        setupLineChart();
     }
 
     // ── 차트 기본 스타일 설정 ─────────────────────────────────────────────────
@@ -117,7 +124,6 @@ public class RecordActivity extends AppCompatActivity {
         leftAxis.setDrawGridLines(true);
         leftAxis.setGridColor(0xFFEEEEEE);
         leftAxis.setTextColor(0xFF555555);
-        // Y축에 % 단위 표시
         leftAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String getFormattedValue(float value) {
@@ -126,6 +132,36 @@ public class RecordActivity extends AppCompatActivity {
         });
 
         barChart.getAxisRight().setEnabled(false);
+    }
+
+    private void setupLineChart() {
+        lineChart.setDrawGridBackground(false);
+        lineChart.setDrawBorders(false);
+        lineChart.getDescription().setEnabled(false);
+        lineChart.getLegend().setEnabled(false);
+        lineChart.setTouchEnabled(false);
+        lineChart.setExtraBottomOffset(8f);
+
+        XAxis xAxis = lineChart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setDrawGridLines(false);
+        xAxis.setGranularity(1f);
+        xAxis.setTextColor(0xFF555555);
+
+        YAxis leftAxis = lineChart.getAxisLeft();
+        leftAxis.setAxisMinimum(0f);
+        leftAxis.setAxisMaximum(100f);
+        leftAxis.setDrawGridLines(true);
+        leftAxis.setGridColor(0xFFEEEEEE);
+        leftAxis.setTextColor(0xFF555555);
+        leftAxis.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getFormattedValue(float value) {
+                return (int) value + "%";
+            }
+        });
+
+        lineChart.getAxisRight().setEnabled(false);
     }
 
     // ── 통계 데이터 로드 (API 호출) ────────────────────────────────────────────
@@ -211,6 +247,9 @@ public class RecordActivity extends AppCompatActivity {
     // ── 차트 렌더링: 전체 연도별 달성률 ─────────────────────────────────────────
 
     private void renderYearlyChart(List<YearlyStatDto> stats) {
+        barChart.setVisibility(View.VISIBLE);
+        lineChart.setVisibility(View.GONE);
+
         List<BarEntry> entries = new ArrayList<>();
         List<String> labels = new ArrayList<>();
 
@@ -220,29 +259,8 @@ public class RecordActivity extends AppCompatActivity {
             labels.add(String.valueOf(dto.getYear()));
         }
 
-        applyChartData(entries, labels, "연도별 달성률");
-    }
-
-    // ── 차트 렌더링: 특정 연도의 월별 달성률 ─────────────────────────────────────
-
-    private void renderMonthlyChart(YearlyStatDto dto) {
-        if (dto.getMonthly() == null) return;
-
-        List<BarEntry> entries = new ArrayList<>();
-        List<String> labels = new ArrayList<>();
-
-        for (MonthlyStatDto monthly : dto.getMonthly()) {
-            entries.add(new BarEntry(monthly.getMonth() - 1, (float) monthly.getAchievementRate()));
-            labels.add(monthly.getMonth() + "월");
-        }
-
-        applyChartData(entries, labels, dto.getYear() + "년 월별 달성률");
-    }
-
-    // 차트 데이터 공통 적용 메서드
-    private void applyChartData(List<BarEntry> entries, List<String> labels, String label) {
-        BarDataSet dataSet = new BarDataSet(entries, label);
-        dataSet.setColor(0xFF3DAA5C);          // main_green 계열
+        BarDataSet dataSet = new BarDataSet(entries, "연도별 달성률");
+        dataSet.setColor(0xFF3DAA5C);
         dataSet.setValueTextColor(0xFF334455);
         dataSet.setValueTextSize(10f);
         dataSet.setValueFormatter(new ValueFormatter() {
@@ -260,6 +278,48 @@ public class RecordActivity extends AppCompatActivity {
         barChart.setData(barData);
         barChart.animateY(600);
         barChart.invalidate();
+    }
+
+    // ── 차트 렌더링: 특정 연도의 월별 달성률 ─────────────────────────────────────
+
+    private void renderMonthlyChart(YearlyStatDto dto) {
+        if (dto.getMonthly() == null) return;
+        
+        lineChart.setVisibility(View.VISIBLE);
+        barChart.setVisibility(View.GONE);
+
+        List<Entry> entries = new ArrayList<>();
+        List<String> labels = new ArrayList<>();
+
+        for (MonthlyStatDto monthly : dto.getMonthly()) {
+            entries.add(new Entry(monthly.getMonth() - 1, (float) monthly.getAchievementRate()));
+            labels.add(monthly.getMonth() + "월");
+        }
+
+        LineDataSet dataSet = new LineDataSet(entries, dto.getYear() + "년 월별 달성률");
+        dataSet.setColor(0xFF3DAA5C);
+        dataSet.setCircleColor(0xFF3DAA5C);
+        dataSet.setCircleHoleColor(android.graphics.Color.WHITE);
+        dataSet.setLineWidth(2f);
+        dataSet.setCircleRadius(4f);
+        dataSet.setCircleHoleRadius(2f);
+        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+        dataSet.setValueTextColor(0xFF334455);
+        dataSet.setValueTextSize(10f);
+        dataSet.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getFormattedValue(float value) {
+                return value == 0 ? "" : (int) value + "%";
+            }
+        });
+
+        LineData lineData = new LineData(dataSet);
+
+        lineChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(labels));
+        lineChart.getXAxis().setLabelCount(labels.size());
+        lineChart.setData(lineData);
+        lineChart.animateY(600);
+        lineChart.invalidate();
     }
 
     // ── 요약 텍스트 갱신: 전체 연도 모드 ───────────────────────────────────────

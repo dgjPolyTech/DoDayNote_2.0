@@ -92,8 +92,19 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <com.github.mikephil.charting.charts.LineChart
-                android:id="@+id/habit_line_chart"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="오늘까지의 달성률"
+                android:fontFamily="@font/inter"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#333333"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp" />
+
+            <com.github.mikephil.charting.charts.PieChart
+                android:id="@+id/habit_pie_chart"
                 android:layout_width="match_parent"
                 android:layout_height="200dp" />
         </LinearLayout>

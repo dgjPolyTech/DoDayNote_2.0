@@ -20,13 +20,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.widget.Toast;
 
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import android.graphics.drawable.GradientDrawable;
 
@@ -210,7 +207,7 @@ public class HabitDetailActivity extends AppCompatActivity {
 
     private void processRecordsAndDrawChart(List<HabitRecord> records) {
         if (habitStartDate == null || habitStartDate.isEmpty()) {
-            setupHabitChart(null, null);
+            setupHabitChart(0f);
             return;
         }
 
@@ -220,27 +217,34 @@ public class HabitDetailActivity extends AppCompatActivity {
         try {
             Date startDate = sdf.parse(habitStartDate);
             if (startDate == null) {
-                setupHabitChart(null, null);
+                setupHabitChart(0f);
                 return;
             }
 
-            // 종료일 파싱 — 실제 주차별 날짜 수(분모) 계산에 사용
+            // 오늘 날짜까지만 달성률 계산
+            Date today = new Date();
             Date endDate = null;
             if (habitEndDate != null && !habitEndDate.isEmpty()) {
                 String endPattern = habitEndDate.contains("-") ? "yyyy-MM-dd" : "yyyy.MM.dd";
                 endDate = new SimpleDateFormat(endPattern, Locale.getDefault()).parse(habitEndDate);
             }
-            // endDate가 없거나 미래면 오늘로 제한
-            Date today = new Date();
             Date effectiveEnd = (endDate != null && endDate.before(today)) ? endDate : today;
 
-            // 습관 전체 기간 일수 (startDate ~ effectiveEnd)
-            long totalDays = (effectiveEnd.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000) + 1;
-            // 마지막 주차 인덱스 (0-based)
-            int lastWeekIndex = (int) ((totalDays - 1) / 7);
+            // 시작일이 미래인 경우 0%
+            if (startDate.after(today)) {
+                setupHabitChart(0f);
+                return;
+            }
 
-            // 주차별 달성(done=true) 카운트
-            TreeMap<Integer, Integer> weeklyDoneCount = new TreeMap<>();
+            // 시작일부터 오늘(또는 종료일)까지의 총 일수 계산 (확인 시점에서 오늘까지)
+            long totalDays = (effectiveEnd.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000) + 1;
+            if (totalDays <= 0) {
+                setupHabitChart(0f);
+                return;
+            }
+
+            int successDays = 0;
+            SimpleDateFormat recordSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
             for (HabitRecord record : records) {
                 if (!record.isDone() || record.getRecordDate() == null) continue;
@@ -249,147 +253,82 @@ public class HabitDetailActivity extends AppCompatActivity {
                         ? record.getRecordDate().substring(0, 10).replace(".", "-")
                         : record.getRecordDate().replace(".", "-");
 
-                SimpleDateFormat recordSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
                 Date rDate = recordSdf.parse(recordDateStr);
                 if (rDate == null) continue;
 
-                long diff = rDate.getTime() - startDate.getTime();
-                if (diff < 0) continue;
-
-                int days = (int) (diff / (24 * 60 * 60 * 1000));
-                int weekIndex = days / 7;
-
-                Integer current = weeklyDoneCount.get(weekIndex);
-                weeklyDoneCount.put(weekIndex, (current == null ? 0 : current) + 1);
-            }
-
-            List<Entry> entries = new ArrayList<>();
-            List<String> labels = new ArrayList<>();
-
-            int maxWeek = Math.max(3, lastWeekIndex);
-
-            for (int i = 0; i <= maxWeek; i++) {
-                Integer doneDays = weeklyDoneCount.get(i);
-                int success = (doneDays == null) ? 0 : doneDays;
-
-                // ─── 핵심 수정: 분모를 7 고정이 아닌 실제 주차 내 날짜 수로 계산 ───────
-                // 마지막 주차는 7일 미만일 수 있음 (예: 습관이 수요일에 끝나면 3일)
-                int daysInThisWeek;
-                if (i < lastWeekIndex) {
-                    daysInThisWeek = 7;                       // 중간 주차: 항상 7일
-                } else {
-                    // 마지막 주차: 나머지 일수 (1 ~ 7)
-                    daysInThisWeek = (int) (totalDays - (long) i * 7);
-                    daysInThisWeek = Math.min(daysInThisWeek, 7);
+                // 시작일과 오늘(또는 종료일) 사이의 기록만 인정
+                if (!rDate.before(startDate) && !rDate.after(effectiveEnd)) {
+                    successDays++;
                 }
-                // ────────────────────────────────────────────────────────────────────────
-
-                float achievementRate = (daysInThisWeek > 0)
-                        ? ((float) success / daysInThisWeek) * 100f : 0f;
-                entries.add(new Entry((float) i, achievementRate));
-                labels.add((i + 1) + "주차");
             }
 
-            setupHabitChart(entries, labels);
+            float achievementRate = ((float) successDays / totalDays) * 100f;
+            if (achievementRate > 100f) achievementRate = 100f;
+
+            setupHabitChart(achievementRate);
 
         } catch (ParseException e) {
             android.util.Log.e("HabitDetail", "Date parse error: " + e.getMessage());
-            setupHabitChart(null, null);
+            setupHabitChart(0f);
         }
     }
 
     /**
-     * MPAndroidChart의 LineChart를 활용하여 커스텀 꺾은선 차트를 그리는 메서드입니다.
+     * MPAndroidChart의 PieChart를 활용하여 도넛 차트를 그리는 메서드입니다.
      */
-    private void setupHabitChart(List<Entry> dynamicEntries, List<String> dynamicLabels) {
-        LineChart lineChart = findViewById(R.id.habit_line_chart);
-        if (lineChart == null) return;
+    private void setupHabitChart(float achievementRate) {
+        PieChart pieChart = findViewById(R.id.habit_pie_chart);
+        if (pieChart == null) return;
 
-        List<Entry> entries;
-        final String[] labels;
-
-        if (dynamicEntries != null && !dynamicEntries.isEmpty()) {
-            entries = dynamicEntries;
-            labels = dynamicLabels.toArray(new String[0]);
-        } else {
-            // 데이터가 없을 경우 샘플 데이터
-            entries = new ArrayList<>();
-            entries.add(new Entry(0f, 0f));
-            entries.add(new Entry(1f, 0f));
-            entries.add(new Entry(2f, 0f));
-            entries.add(new Entry(3f, 0f));
-            labels = new String[]{"1주차", "2주차", "3주차", "4주차"};
+        List<PieEntry> entries = new ArrayList<>();
+        
+        float failRate = 100f - achievementRate;
+        if (achievementRate > 0) {
+            entries.add(new PieEntry(achievementRate, "달성"));
+        }
+        if (failRate > 0) {
+            entries.add(new PieEntry(failRate, "미달성"));
+        }
+        
+        // 데이터가 없을 경우 (0% 달성)
+        if (entries.isEmpty()) {
+            entries.add(new PieEntry(100f, "미달성"));
         }
 
-        // 2. 데이터 세트 구성 및 스타일링
-        LineDataSet dataSet = new LineDataSet(entries, "달성률 (%)");
-        dataSet.setColor(Color.parseColor("#70C18E"));       // 선 색상 (테마 초록색)
-        dataSet.setCircleColor(Color.parseColor("#70C18E")); // 데이터 점 색상
-        dataSet.setCircleHoleColor(Color.WHITE);             // 점 중앙 흰색 구멍 효과
-        dataSet.setCircleRadius(4f);                         // 점 크기
-        dataSet.setCircleHoleRadius(2f);
-        dataSet.setLineWidth(2f);                            // 선 두께
-        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);      // 부드러운 곡선 효과
-        dataSet.setDrawValues(true);                         // 점 위의 값 텍스트 활성화
-        dataSet.setValueTextSize(10f);                       // 값 텍스트 크기
-        dataSet.setValueTextColor(Color.parseColor("#70C18E")); // 텍스트 컬러 통일
+        PieDataSet dataSet = new PieDataSet(entries, "");
+        
+        // 색상 설정: 달성(초록), 미달성(회색)
+        List<Integer> colors = new ArrayList<>();
+        if (achievementRate > 0) colors.add(Color.parseColor("#70C18E"));
+        if (failRate > 0 || achievementRate == 0) colors.add(Color.parseColor("#E5E5E5"));
+        dataSet.setColors(colors);
 
-        // 값 포맷터 설정 (예: 40.0 -> 40%)
-        dataSet.setValueFormatter(new ValueFormatter() {
-            @Override
-            public String getFormattedValue(float value) {
-                return Math.round(value) + "%";
-            }
-        });
+        dataSet.setDrawValues(false); // 항목별 텍스트 값 숨김
 
-        // 선 하단 그라데이션 채우기 적용
-        dataSet.setDrawFilled(true);
-        GradientDrawable gradientDrawable = new GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{Color.parseColor("#3370C18E"), Color.parseColor("#0070C18E")} // 반투명 초록 -> 투명
-        );
-        dataSet.setFillDrawable(gradientDrawable);
+        PieData pieData = new PieData(dataSet);
+        pieChart.setData(pieData);
 
-        // 3. 차트 전체 설정
-        lineChart.getDescription().setEnabled(false);        // 우측 하단 설명 문구 제거
-        lineChart.getLegend().setEnabled(false);             // 범례 제거 (심플함 유지)
-        lineChart.setTouchEnabled(true);                     // 터치 가능
-        lineChart.setPinchZoom(false);                       // 줌 불가능 (심플 대시보드 목적)
-        lineChart.setDoubleTapToZoomEnabled(false);
-        lineChart.setExtraOffsets(10f, 15f, 10f, 10f);       // 여백 설정
+        // 도넛 차트 설정
+        pieChart.setDrawHoleEnabled(true);
+        pieChart.setHoleColor(Color.WHITE);
+        pieChart.setTransparentCircleRadius(0f);
+        pieChart.setHoleRadius(65f); // 도넛 두께 조절 (구멍 크기)
 
-        // 4. X축(가로축) 설정
-        XAxis xAxis = lineChart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);       // 아래쪽에 위치
-        xAxis.setDrawGridLines(false);                       // 수직 격자선 제거
-        xAxis.setDrawAxisLine(false);                        // 축 기준선 제거
-        xAxis.setValueFormatter(new IndexAxisValueFormatter(labels)); // 레이블 등록
-        xAxis.setTextColor(Color.parseColor("#AAAAAA"));
-        xAxis.setTextSize(10f);
-        xAxis.setGranularity(1f);                            // 레이블 간격 1로 고정
-        xAxis.setLabelCount(labels.length);
+        // 중앙 텍스트 설정 (달성률 퍼센트)
+        pieChart.setDrawCenterText(true);
+        pieChart.setCenterText(Math.round(achievementRate) + "%");
+        pieChart.setCenterTextSize(24f);
+        pieChart.setCenterTextColor(Color.parseColor("#333333"));
+        pieChart.setCenterTextTypeface(Typeface.DEFAULT_BOLD);
 
-        // 5. Y축(세로축) 설정
-        YAxis leftAxis = lineChart.getAxisLeft();
-        leftAxis.setDrawGridLines(true);                     // 수평 격자선 활성화
-        leftAxis.setGridColor(Color.parseColor("#E5E5E5"));  // 아주 연한 회색의 격자선
-        leftAxis.setGridLineWidth(1f);
-        leftAxis.setDrawAxisLine(false);                     // 축 기준선 제거
-        leftAxis.setTextColor(Color.parseColor("#AAAAAA"));
-        leftAxis.setTextSize(10f);
-        leftAxis.setAxisMinimum(0f);                         // 최소 0%
-        leftAxis.setAxisMaximum(100f);                       // 최대 100%
-        leftAxis.setLabelCount(5, true);
+        pieChart.getDescription().setEnabled(false);
+        pieChart.getLegend().setEnabled(false); // 범례 숨김
+        pieChart.setDrawEntryLabels(false); // 도넛 안의 달성/미달성 텍스트 숨김
+        pieChart.setTouchEnabled(false); // 터치 비활성화 (단순 표시용)
 
-        // 우측 Y축 비활성화
-        YAxis rightAxis = lineChart.getAxisRight();
-        rightAxis.setEnabled(false);
-
-        // 6. 데이터 적용 및 애니메이션 시작
-        LineData lineData = new LineData(dataSet);
-        lineChart.setData(lineData);
-        lineChart.animateY(800);                             // 위로 솟구치는 0.8초 애니메이션
-        lineChart.invalidate();                              // 렌더링 갱신
+        // 애니메이션 효과
+        pieChart.animateY(1000);
+        pieChart.invalidate();
     }
 
     /**

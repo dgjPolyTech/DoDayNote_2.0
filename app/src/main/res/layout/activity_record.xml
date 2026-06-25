@@ -87,11 +87,18 @@
                     android:layout_height="wrap_content"
                     android:padding="16dp">
 
-                    <!-- ImageView 대신 MPAndroidChart BarChart 사용 -->
+                    <!-- MPAndroidChart BarChart 사용 (전체 연도별) -->
                     <com.github.mikephil.charting.charts.BarChart
                         android:id="@+id/bar_chart_habits"
                         android:layout_width="match_parent"
                         android:layout_height="260dp" />
+
+                    <!-- MPAndroidChart LineChart 사용 (특정 연도 월별) -->
+                    <com.github.mikephil.charting.charts.LineChart
+                        android:id="@+id/line_chart_habits"
+                        android:layout_width="match_parent"
+                        android:layout_height="260dp"
+                        android:visibility="gone" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
