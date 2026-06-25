@@ -131,7 +131,10 @@ public class RecordActivity extends AppCompatActivity {
     // ── 통계 데이터 로드 (API 호출) ────────────────────────────────────────────
 
     private void loadStatsData(Integer year) {
-        apiService.getHabitStats(year).enqueue(new Callback<List<YearlyStatDto>>() {
+        android.content.SharedPreferences prefs = getSharedPreferences("DoDayNotePrefs", MODE_PRIVATE);
+        String userEmail = prefs.getString("userEmail", "");
+
+        apiService.getHabitStats(userEmail, year).enqueue(new Callback<List<YearlyStatDto>>() {
             @Override
             public void onResponse(Call<List<YearlyStatDto>> call,
                                    Response<List<YearlyStatDto>> response) {

@@ -6,6 +6,8 @@ import java.util.Map;
 import kr.ac.kopo.dodaynote_2.domain.AiFeedbackResponse;
 import kr.ac.kopo.dodaynote_2.domain.Habit;
 import kr.ac.kopo.dodaynote_2.domain.HabitRecord;
+import kr.ac.kopo.dodaynote_2.domain.UserRequestDto;
+import kr.ac.kopo.dodaynote_2.domain.UserResponseDto;
 import kr.ac.kopo.dodaynote_2.domain.YearlyStatDto;
 
 import retrofit2.Call;
@@ -18,14 +20,21 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface ApiService {
+
+    @POST("/api/users")
+    Call<UserResponseDto> signup(@Body UserRequestDto requestDto);
+
+    @POST("/api/users/login")
+    Call<UserResponseDto> login(@Body UserRequestDto requestDto);
+
     @POST("/api/habits")
-    Call<Habit> createHabit(@Body Habit habit);
+    Call<Habit> createHabit(@Query("userEmail") String userEmail, @Body Habit habit);
 
     @GET("/api/habits")
-    Call<List<Habit>> getAllHabits();
+    Call<List<Habit>> getAllHabits(@Query("userEmail") String userEmail);
 
     @GET("/api/habits/completed")
-    Call<List<Habit>> getCompletedHabits();
+    Call<List<Habit>> getCompletedHabits(@Query("userEmail") String userEmail);
 
     @POST("/api/habits/{habitId}/records")
     Call<HabitRecord> addProgress(
@@ -48,7 +57,10 @@ public interface ApiService {
 
     // 연도별/월별 통계 (year=null → 전체 연도별, year=2026 → 해당 연도 월별)
     @GET("api/habits/stats")
-    Call<List<YearlyStatDto>> getHabitStats(@Query("year") Integer year);
+    Call<List<YearlyStatDto>> getHabitStats(
+            @Query("userEmail") String userEmail, 
+            @Query("year") Integer year
+    );
 
     @PUT("/api/habits/{id}")
     Call<Habit> updateHabit(@Path("id") Long id, @Body Habit habit);

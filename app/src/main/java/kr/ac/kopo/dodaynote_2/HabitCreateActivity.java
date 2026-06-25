@@ -80,7 +80,10 @@ public class HabitCreateActivity extends AppCompatActivity {
             habit.setAlertOn(switchAlarm.isChecked());
             habit.setTargetMinutes(pickerDuration.getValue());
 
-            ApiClient.getApiService().createHabit(habit).enqueue(new Callback<Habit>() {
+            android.content.SharedPreferences prefs = getSharedPreferences("DoDayNotePrefs", MODE_PRIVATE);
+            String userEmail = prefs.getString("userEmail", "");
+
+            ApiClient.getApiService().createHabit(userEmail, habit).enqueue(new Callback<Habit>() {
                 @Override
                 public void onResponse(Call<Habit> call, Response<Habit> response) {
                     if (response.isSuccessful()) {

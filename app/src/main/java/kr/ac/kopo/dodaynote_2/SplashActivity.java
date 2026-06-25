@@ -18,7 +18,16 @@ public class SplashActivity extends AppCompatActivity {
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+                android.content.SharedPreferences prefs = getSharedPreferences("DoDayNotePrefs", MODE_PRIVATE);
+                String userEmail = prefs.getString("userEmail", null);
+
+                Intent intent;
+                if (userEmail != null && !userEmail.isEmpty()) {
+                    intent = new Intent(SplashActivity.this, MainActivity.class);
+                } else {
+                    intent = new Intent(SplashActivity.this, LoginActivity.class);
+                }
+                
                 startActivity(intent);
                 // 스플래시 액티비티를 종료하여 뒤로 가기 시 다시 보이지 않도록 함
                 finish();

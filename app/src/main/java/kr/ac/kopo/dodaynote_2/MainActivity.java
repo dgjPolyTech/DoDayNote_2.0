@@ -186,7 +186,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadHabitsFromServer() {
-        ApiClient.getApiService().getAllHabits().enqueue(new Callback<List<Habit>>() {
+        android.content.SharedPreferences prefs = getSharedPreferences("DoDayNotePrefs", MODE_PRIVATE);
+        String userEmail = prefs.getString("userEmail", "");
+        
+        ApiClient.getApiService().getAllHabits(userEmail).enqueue(new Callback<List<Habit>>() {
             @Override
             public void onResponse(Call<List<Habit>> call, Response<List<Habit>> response) {
                 if(response.isSuccessful() && response.body() != null) {

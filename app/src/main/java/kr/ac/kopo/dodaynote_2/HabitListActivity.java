@@ -58,7 +58,10 @@ public class HabitListActivity extends AppCompatActivity {
     }
 
     private void loadCompletedHabits() {
-        apiService.getCompletedHabits().enqueue(new Callback<List<Habit>>() {
+        android.content.SharedPreferences prefs = getSharedPreferences("DoDayNotePrefs", MODE_PRIVATE);
+        String userEmail = prefs.getString("userEmail", "");
+
+        apiService.getCompletedHabits(userEmail).enqueue(new Callback<List<Habit>>() {
             @Override
             public void onResponse(Call<List<Habit>> call, Response<List<Habit>> response) {
                 if (response.isSuccessful() && response.body() != null) {
